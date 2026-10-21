@@ -42,7 +42,8 @@ struct ReportPreviewView: View {
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 if let generatedAt {
-                    Text("Generated \(generatedAt.formatted(date: .abbreviated, time: .shortened))")
+                    Text(L10n.t("Generated %@",
+                                generatedAt.formatted(date: .abbreviated, time: .shortened)))
                         .font(DesignSystem.Typography.metadata)
                         .foregroundStyle(colors.secondaryText)
                 }
@@ -98,7 +99,7 @@ struct ReportPreviewView: View {
             .background(colors.elevatedSurface, in: RoundedRectangle(cornerRadius: DesignSystem.Radius.medium))
             .padding()
         case .success(let path):
-            Label("Exported to \(path)", systemImage: "checkmark.circle.fill")
+            Label(L10n.t("Exported to %@", path), systemImage: "checkmark.circle.fill")
                 .font(DesignSystem.Typography.secondary)
                 .foregroundStyle(.green)
                 .padding(DesignSystem.Spacing.md)

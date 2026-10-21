@@ -38,6 +38,11 @@ struct EvidenceDeskApp: App {
         }
         .defaultSize(width: DesignSystem.Layout.defaultWindowWidth,
                      height: DesignSystem.Layout.defaultWindowHeight)
+
+        Settings {
+            SettingsView()
+                .designAware()
+        }
     }
 }
 

@@ -178,7 +178,7 @@ struct PDFReaderView: View {
             Spacer()
 
             if let page = controls?.currentPageNumber {
-                Text("Page \(page) of \(controls?.pageCount() ?? 0)")
+                Text(L10n.t("Page %lld of %lld", page, controls?.pageCount() ?? 0))
                     .font(DesignSystem.Typography.metadata)
                     .foregroundStyle(colors.secondaryText)
             }

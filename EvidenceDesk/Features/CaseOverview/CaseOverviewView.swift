@@ -23,7 +23,9 @@ struct CaseOverviewView: View {
                         .font(DesignSystem.Typography.body)
                         .onChange(of: title) { scheduleSave() }
 
-                    Text("\(researchCase.shortCode) · Created \(researchCase.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                    Text(L10n.t("%@ · Created %@",
+                                researchCase.shortCode,
+                                researchCase.createdAt.formatted(date: .abbreviated, time: .shortened)))
                         .font(DesignSystem.Typography.metadata)
                         .foregroundStyle(colors.secondaryText)
                 }
@@ -133,7 +135,7 @@ struct StatCard: View {
                     .foregroundStyle(colors.secondaryText)
                 Text(value).font(.system(.title3, design: .rounded).weight(.semibold))
             }
-            Text(label)
+            Text(L10n.t(label))
                 .font(DesignSystem.Typography.metadata)
                 .foregroundStyle(colors.secondaryText)
         }
@@ -141,6 +143,6 @@ struct StatCard: View {
         .padding(DesignSystem.Spacing.md)
         .background(colors.surface, in: RoundedRectangle(cornerRadius: DesignSystem.Radius.medium))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel("\(L10n.t(label)): \(value)")
     }
 }

@@ -11,8 +11,8 @@ final class EvidenceDeskFlowTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName,
-                               "--reset-test-storage", "--seed-demo"]
+        app.launchArguments = Self.languageArguments("en") + ["--test-storage-name", storageName,
+                                                          "--reset-test-storage", "--seed-demo"]
         app.launch()
         app.activate()
     }
@@ -47,8 +47,8 @@ final class EvidenceDeskFlowTests: XCTestCase {
 
         app.terminate()
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName,
-                               "--ed-section", "sources"]
+        app.launchArguments = Self.languageArguments("en") + ["--test-storage-name", storageName,
+                                                             "--ed-section", "sources"]
         app.launch()
         app.activate()
 
@@ -100,8 +100,8 @@ final class EvidenceDeskFlowTests: XCTestCase {
     private func relaunch(section: String) {
         app.terminate()
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName,
-                               "--ed-section", section]
+        app.launchArguments = Self.languageArguments("en") + ["--test-storage-name", storageName,
+                                                             "--ed-section", section]
         app.launch()
         app.activate()
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 30))

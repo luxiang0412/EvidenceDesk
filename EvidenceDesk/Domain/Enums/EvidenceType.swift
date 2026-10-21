@@ -15,10 +15,10 @@ enum EvidenceType: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .fact: return "Fact"
-        case .interpretation: return "Interpretation"
-        case .hypothesis: return "Hypothesis"
-        case .unresolved: return "Unresolved"
+        case .fact: return String(localized: "Fact")
+        case .interpretation: return String(localized: "Interpretation")
+        case .hypothesis: return String(localized: "Hypothesis")
+        case .unresolved: return String(localized: "Unresolved")
         }
     }
 

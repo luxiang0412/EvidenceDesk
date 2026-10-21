@@ -11,10 +11,10 @@ enum DatePrecision: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .exact: return "Exact date"
-        case .yearMonth: return "Month / year"
-        case .year: return "Year only"
-        case .unknown: return "Date unknown"
+        case .exact: return String(localized: "Exact date")
+        case .yearMonth: return String(localized: "Month / year")
+        case .year: return String(localized: "Year only")
+        case .unknown: return String(localized: "Date unknown")
         }
     }
 }

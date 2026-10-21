@@ -28,7 +28,7 @@ struct EvidenceLinkPickerSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            Text("Link Evidence to \(finding.shortCode)")
+            Text(L10n.t("Link Evidence to %@", finding.shortCode))
                 .font(DesignSystem.Typography.sectionTitle)
 
             Picker("Relation", selection: $relation) {

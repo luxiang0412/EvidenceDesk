@@ -10,9 +10,9 @@ enum SourceType: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .url: return "Web Link"
-        case .pdf: return "PDF Document"
-        case .text: return "Text / Markdown"
+        case .url: return String(localized: "Web Link")
+        case .pdf: return String(localized: "PDF Document")
+        case .text: return String(localized: "Text / Markdown")
         }
     }
 

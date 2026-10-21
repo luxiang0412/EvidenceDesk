@@ -10,15 +10,15 @@ enum ExportError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .targetNotWritable:
-            return "The export location is not writable."
+            return String(localized: "The export location is not writable.")
         case .manifestEncodingFailed:
-            return "The case manifest could not be encoded."
+            return String(localized: "The case manifest could not be encoded.")
         case .attachmentMissing(let name):
-            return "An attachment file was missing during export: \(name)."
+            return String(localized: "An attachment file was missing during export: \(name).")
         case .copyFailed(let detail):
-            return "An attachment could not be copied. \(detail)"
+            return String(localized: "An attachment could not be copied. \(detail)")
         case .reportGenerationFailed(let detail):
-            return "The report could not be generated. \(detail)"
+            return String(localized: "The report could not be generated. \(detail)")
         }
     }
 }

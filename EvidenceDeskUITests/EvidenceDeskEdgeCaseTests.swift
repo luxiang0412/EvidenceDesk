@@ -9,8 +9,8 @@ final class EvidenceDeskEdgeCaseTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName,
-                               "--reset-test-storage"]
+        app.launchArguments = Self.languageArguments("en") + ["--test-storage-name", storageName,
+                                                          "--reset-test-storage"]
         app.launch()
         app.activate()
     }

@@ -13,23 +13,23 @@ enum WorkspaceSection: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .overview: return "Overview"
-        case .sources: return "Sources"
-        case .evidence: return "Evidence"
-        case .findings: return "Findings"
-        case .timeline: return "Timeline"
-        case .report: return "Report"
+        case .overview: return L10n.t("Overview")
+        case .sources: return L10n.t("Sources")
+        case .evidence: return L10n.t("Evidence")
+        case .findings: return L10n.t("Findings")
+        case .timeline: return L10n.t("Timeline")
+        case .report: return L10n.t("Report")
         }
     }
 
     var systemImage: String {
         switch self {
-        case .overview: return "doc.text.magnifyingglass"
-        case .sources: return "books.vertical"
-        case .evidence: return "quote.bubble"
-        case .findings: return "lightbulb"
-        case .timeline: return "clock"
-        case .report: return "doc.plaintext"
+        case .overview: return L10n.t("doc.text.magnifyingglass")
+        case .sources: return L10n.t("books.vertical")
+        case .evidence: return L10n.t("quote.bubble")
+        case .findings: return L10n.t("lightbulb")
+        case .timeline: return L10n.t("clock")
+        case .report: return L10n.t("doc.plaintext")
         }
     }
 }

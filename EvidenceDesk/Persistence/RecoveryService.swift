@@ -12,7 +12,7 @@ enum RecoveryError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .scanFailed(let detail): return "The data consistency check failed: \(detail)"
+        case .scanFailed(let detail): return String(localized: "The data consistency check failed: \(detail)")
         }
     }
 }

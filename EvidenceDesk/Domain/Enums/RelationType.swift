@@ -10,9 +10,9 @@ enum RelationType: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .supports: return "Supports"
-        case .contradicts: return "Contradicts"
-        case .context: return "Background"
+        case .supports: return String(localized: "Supports")
+        case .contradicts: return String(localized: "Contradicts")
+        case .context: return String(localized: "Background")
         }
     }
 

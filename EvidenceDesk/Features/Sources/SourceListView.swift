@@ -12,9 +12,9 @@ struct SourceListView: View {
                 VStack(spacing: DesignSystem.Spacing.sm) {
                     Image(systemName: searchText.isEmpty ? "books.vertical" : "magnifyingglass")
                         .font(.system(size: 28)).foregroundStyle(.secondary)
-                    Text(searchText.isEmpty ? "No Sources" : "No Matching Sources")
+                    Text(L10n.t(searchText.isEmpty ? "No Sources" : "No Matching Sources"))
                         .font(DesignSystem.Typography.secondary)
-                    Text(searchText.isEmpty ? "Import a link, PDF, TXT or Markdown file." : "Try a different search.")
+                    Text(L10n.t(searchText.isEmpty ? "Import a link, PDF, TXT or Markdown file." : "Try a different search."))
                         .font(DesignSystem.Typography.metadata)
                         .foregroundStyle(colors.secondaryText)
                 }

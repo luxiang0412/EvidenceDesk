@@ -63,11 +63,13 @@ struct EvidenceDetailView: View {
                         }
                     }
                     HStack {
-                        Text("Created \(evidence.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                        Text(L10n.t("Created %@",
+                                    evidence.createdAt.formatted(date: .abbreviated, time: .shortened)))
                             .font(DesignSystem.Typography.metadata)
                             .foregroundStyle(colors.tertiaryText)
                         if evidence.updatedAt != evidence.createdAt {
-                            Text("· Updated \(evidence.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                            Text(L10n.t("· Updated %@",
+                                        evidence.updatedAt.formatted(date: .abbreviated, time: .shortened)))
                                 .font(DesignSystem.Typography.metadata)
                                 .foregroundStyle(colors.tertiaryText)
                         }
@@ -100,7 +102,8 @@ struct EvidenceDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             if evidence.findingLinks.count > 0 {
-                Text("It is linked to \(evidence.findingLinks.count) finding(s). Deleting it removes those links too.")
+                Text(L10n.t("It is linked to %lld finding(s). Deleting it removes those links too.",
+                            evidence.findingLinks.count))
             } else {
                 Text("This evidence item will be removed.")
             }

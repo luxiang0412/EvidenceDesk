@@ -91,7 +91,7 @@ struct FindingDetailView: View {
             Button("Delete", role: .destructive) { delete() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Its \(finding.links.count) evidence link(s) will also be removed.")
+            Text(L10n.t("Its %lld evidence link(s) will also be removed.", finding.links.count))
         }
         .onChange(of: router.pending.token) {
             // When navigating from evidence to finding, highlight the section.

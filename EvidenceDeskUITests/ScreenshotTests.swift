@@ -13,7 +13,7 @@ final class ScreenshotTests: XCTestCase {
                         storageName: String = "EvidenceDesk-Shot",
                         extraArguments: [String] = [],
                         environment: [String: String] = [:]) {
-        var args = ["--test-storage-name", storageName, "--reset-test-storage"]
+        var args = Self.languageArguments("en") + ["--test-storage-name", storageName, "--reset-test-storage"]
         if seed { args.append("--seed-demo") }
         args.append(contentsOf: extraArguments)
 

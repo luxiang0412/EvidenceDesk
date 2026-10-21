@@ -26,6 +26,7 @@ executed.
 | Light, dark, window-size visual acceptance | PASS | `P1` screenshots (light, dark, 980×640) |
 | Empty / error / loading states | PASS | `UITests/testEmptyStateOffersFirstAction`, `testSearchNoResultState`, `testArchivedEmptyStateIsNotDeletion`; `ErrorBannerView`; `StartupView` progress state |
 | Keyboard navigation and shortcuts | PASS | `AppCommands`; `UITests/testMenuCommandsExistAndInspectorToggles`, `testEditMenuIsStandard` |
+| Chinese and English UI with in-app switching | PASS | `docs/DECISIONS.md` D-015; `LanguageUITests` (4); `artifacts/Screenshots/Chinese/` |
 | VoiceOver labels for controls | PASS (with one manual caveat, §9) | Explicit labels/identifiers on rows, statuses, save state, errors; verified via accessibility-tree dumps |
 | Real running screenshots for core flows | PASS | `artifacts/Screenshots/Sandboxed/` (13 window-only captures, sandboxed app) |
 
@@ -51,8 +52,8 @@ Recorded at `artifacts/P0/environment.txt`; summary in `docs/ENVIRONMENT.md`.
 | `./scripts/env.sh` | 0 | Environment captured |
 | `./scripts/generate-project.sh` | 0 | `EvidenceDesk.xcodeproj` generated |
 | `./scripts/build.sh` | 0 | `** BUILD SUCCEEDED **` (Debug, macOS 15.0 target) |
-| `./scripts/test.sh` | 0 | `Test run with 66 tests in 16 suites passed` |
-| `./scripts/ui-test.sh` | 0 | `Executed 20 tests, with 0 failures` (run twice) |
+| `./scripts/test.sh` | 0 | `Test run with 74 tests in 18 suites passed` |
+| `./scripts/ui-test.sh` | 0 | `Executed 24 tests, with 0 failures` |
 | `./scripts/verify-all.sh` | 0 | environment PASS → generate PASS → build PASS → tests PASS → ui-tests PASS |
 | `./scripts/perf-baseline.sh` | 0 | Scale tests passed; baseline recorded |
 | `git clone` → `./scripts/build.sh` → `./scripts/test.sh` in `/tmp/ed-clean` | 0 | Clean checkout builds and the full test suite passes |
@@ -63,15 +64,16 @@ Logs: `artifacts/P0/*.log`, `artifacts/verify-*/`, `artifacts/TestResults/`.
 
 | Suite | Count | Result |
 | --- | --- | --- |
-| Swift Testing (unit + integration) | 66 tests / 16 suites | 66 passed, 0 failed, 0 skipped |
-| XCTest UI automation | 20 tests / 5 classes | 20 passed, 0 failed (verified twice consecutively) |
+| Swift Testing (unit + integration) | 74 tests / 18 suites | 74 passed, 0 failed, 0 skipped |
+| XCTest UI automation | 24 tests / 6 classes | 24 passed, 0 failed |
 | — launch & empty states | 2 | passed |
 | — library/flow behaviour | 3 | passed |
 | — menus, inspector, validation | 4 | passed |
 | — evidence/PDF/delete/export contracts | 5 | passed |
+| — language switching (zh-Hans ⇄ en, settings) | 4 | passed |
 | — screenshot/state captures | 6 | passed |
 
-Note: `SmokeTests` (3 of the 66) overlaps `URLValidationTests` and
+Note: `SmokeTests` (3 of the 74) overlaps `URLValidationTests` and
 `ShortCodeTests` from the P0 bootstrap. They were retained deliberately rather
 than deleted once the fuller suites landed; they still pass.
 
@@ -82,7 +84,7 @@ Breakdown by area:
 - Attachments + read-only failure (5), PDF (3)
 - Export/report (8), export path through the UI's own service (3),
   export failure paths incl. unopenable store (2)
-- Source deletion policy (1), performance/scale (3)
+- Source deletion policy (1), language preference + catalog (8), performance/scale (3)
 
 ## 5. Visual acceptance
 
@@ -209,7 +211,11 @@ commands locally, which all pass.
    hardened runtime disabled so the local test runner can load; this is not a
    distributable configuration. `docs/RELEASE.md` records the verified vs
    not-executed steps.
-8. **Schema migrations untested beyond v1.** There is one schema version; the
+8. **Language applies after relaunch.** AppKit resolves localisation at
+   launch; the settings screen states this and offers Quit. Instant switching
+   would need a full custom string-resolution refactor and was rejected after
+   `\.locale` injection proved to break window creation (D-015).
+9. **Schema migrations untested beyond v1.** There is one schema version; the
    brief's migration-test requirement starts "when schema changes", and no
    change has been made.
 

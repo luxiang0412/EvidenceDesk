@@ -63,7 +63,7 @@ struct SourceDetailView: View {
                 Button("Delete Source and Keep Evidence") {
                     performDelete(keepEvidence: true)
                 }
-                Button("Delete Source and Its Evidence (\(attachedEvidenceCount))", role: .destructive) {
+                Button(L10n.t("Delete Source and Its Evidence (%lld)", attachedEvidenceCount), role: .destructive) {
                     performDelete(keepEvidence: false)
                 }
             } else {
@@ -126,7 +126,8 @@ struct SourceDetailView: View {
     @ViewBuilder
     private var deleteMessage: some View {
         if attachedEvidenceCount > 0 {
-            Text("This source has \(attachedEvidenceCount) evidence item(s). They will either be kept as unlinked notes or deleted with the source.")
+            Text(L10n.t("This source has %lld evidence item(s). They will either be kept as unlinked notes or deleted with the source.",
+                        attachedEvidenceCount))
         } else {
             Text("This source will be removed. This cannot be undone.")
         }

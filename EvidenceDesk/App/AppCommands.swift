@@ -38,6 +38,15 @@ struct AppCommands: Commands {
                 AppActions.shared.send(.focusSearch)
             }
             .keyboardShortcut("f", modifiers: .command)
+
+            Divider()
+
+            // The app's only settings screen is language, so it is reachable
+            // from View as well as the standard app menu / ⌘,.
+            SettingsLink {
+                Text("Language…")
+            }
+            .keyboardShortcut(",", modifiers: .command)
         }
     }
 }

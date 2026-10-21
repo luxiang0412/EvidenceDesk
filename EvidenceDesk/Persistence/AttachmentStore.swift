@@ -8,11 +8,11 @@ enum AttachmentStoreError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .copyFailed(let detail):
-            return "The attachment could not be copied. \(detail)"
+            return String(localized: "The attachment could not be copied. \(detail)")
         case .verifyFailed:
-            return "The copied attachment could not be verified."
+            return String(localized: "The copied attachment could not be verified.")
         case .cleanupFailed(let detail):
-            return "Temporary data could not be cleaned up. \(detail)"
+            return String(localized: "Temporary data could not be cleaned up. \(detail)")
         }
     }
 }
@@ -41,7 +41,7 @@ final class AttachmentStore {
     func relativePath(for source: Source, originalURL: URL) -> String {
         let ext = originalURL.pathExtension
         let filename = ext.isEmpty ? "original" : "original.\(ext)"
-        return "\(source.id.uuidString)/\(filename)"
+        return String(localized: "\(source.id.uuidString)/\(filename)")
     }
 
     func resolve(urlForRelativePath relativePath: String) -> URL? {
@@ -92,7 +92,7 @@ final class AttachmentStore {
         // Remove now-empty staging parent.
         let staging = stagedFile.deletingLastPathComponent()
         try? fileManager.removeItem(at: staging)
-        return "\(source.id.uuidString)/\(fileName)"
+        return String(localized: "\(source.id.uuidString)/\(fileName)")
     }
 
     /// Removes a staged import entirely (rollback path after failed persistence).

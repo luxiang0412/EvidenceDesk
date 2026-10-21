@@ -8,8 +8,8 @@ final class LaunchTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", "EvidenceDesk-Launch",
-                               "--reset-test-storage"]
+        app.launchArguments = Self.languageArguments("en") + ["--test-storage-name", "EvidenceDesk-Launch",
+                                                          "--reset-test-storage"]
         app.launch()
         app.activate()
     }

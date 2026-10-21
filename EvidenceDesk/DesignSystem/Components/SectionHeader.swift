@@ -16,7 +16,9 @@ struct SectionHeader: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title)
+            // `title` is an English key; resolve it so Chinese UI is consistent
+            // with the rest of the interface.
+            Text(L10n.t(title))
                 .font(DesignSystem.Typography.sectionTitle)
                 .accessibilityAddTraits(.isHeader)
             Spacer()

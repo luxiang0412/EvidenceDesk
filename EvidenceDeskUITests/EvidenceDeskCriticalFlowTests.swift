@@ -29,7 +29,7 @@ final class EvidenceDeskCriticalFlowTests: XCTestCase {
     private func launch(section: String) {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = [
+        app.launchArguments = Self.languageArguments("en") + [
             "--test-storage-name", storageName,
             "--reset-test-storage",
             "--seed-demo",

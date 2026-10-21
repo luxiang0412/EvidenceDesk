@@ -85,7 +85,7 @@ struct EvidenceSectionView: View {
                 VStack(spacing: DesignSystem.Spacing.sm) {
                     Image(systemName: searchText.isEmpty ? "quote.bubble" : "magnifyingglass")
                         .font(.system(size: 28)).foregroundStyle(.secondary)
-                    Text(searchText.isEmpty ? "No Evidence" : "No Matching Evidence")
+                    Text(L10n.t(searchText.isEmpty ? "No Evidence" : "No Matching Evidence"))
                         .font(DesignSystem.Typography.secondary)
                     Text("Record excerpt quotes with their source and location.")
                         .font(DesignSystem.Typography.metadata)

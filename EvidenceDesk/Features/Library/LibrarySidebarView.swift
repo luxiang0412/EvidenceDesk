@@ -43,7 +43,7 @@ struct LibrarySidebarView: View {
                 Spacer()
             } else {
                 List(selection: $selection) {
-                    Section(showArchived ? "Archived Cases" : "Cases") {
+                    Section(L10n.t(showArchived ? "Archived Cases" : "Cases")) {
                         ForEach(cases) { item in
                             CaseRowView(researchCase: item)
                                 .tag(item.id as UUID?)
@@ -57,12 +57,12 @@ struct LibrarySidebarView: View {
 
             HStack(spacing: DesignSystem.Spacing.sm) {
                 Button(action: { showArchived.toggle() }) {
-                    Label(showArchived ? "Active Cases" : "Archived",
+                    Label(L10n.t(showArchived ? "Active Cases" : "Archived"),
                           systemImage: showArchived ? "tray" : "archivebox")
                 }
                 .buttonStyle(.borderless)
                 .help(showArchived ? "Show active cases" : "Show archived cases")
-                .accessibilityLabel(showArchived ? "Show active cases" : "Show archived cases")
+                .accessibilityLabel(L10n.t(showArchived ? "Show active cases" : "Show archived cases"))
 
                 Spacer()
 

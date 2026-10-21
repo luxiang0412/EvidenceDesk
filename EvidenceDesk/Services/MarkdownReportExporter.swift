@@ -19,21 +19,21 @@ enum MarkdownReportExporter {
         var out = MarkdownWriter()
 
         out.heading(1, payload.caseInfo.title)
-        out.paragraph("Case \(payload.caseInfo.shortCode) · Generated \(dateString(payload.generatedAt))")
+        out.paragraph(L10n.t("Case %@ · Generated %@", payload.caseInfo.shortCode, dateString(payload.generatedAt)))
         out.blank()
 
         // Research question & scope
-        out.heading(2, "Research Question")
+        out.heading(2, L10n.t("Research Question"))
         out.paragraph(payload.caseInfo.question.isEmpty ? "_No research question recorded._" : payload.caseInfo.question)
         out.blank()
-        out.heading(2, "Research Scope / Background")
+        out.heading(2, L10n.t("Research Scope / Background"))
         out.paragraph(payload.caseInfo.scope.isEmpty ? "_No scope recorded._" : payload.caseInfo.scope)
         out.blank()
 
         // Findings
-        out.heading(2, "Findings")
+        out.heading(2, L10n.t("Findings"))
         if payload.findings.isEmpty {
-            out.paragraph("_No findings recorded._")
+            out.paragraph(L10n.t("_No findings recorded._"))
         }
         for finding in payload.findings {
             out.blank()
@@ -41,30 +41,30 @@ enum MarkdownReportExporter {
             out.paragraph(finding.body.replacingOccurrences(of: "\n", with: "\n\n"))
             if !finding.uncertainty.isEmpty {
                 out.blank()
-                out.paragraph("**Uncertainty / open questions:** \(finding.uncertainty)")
+                out.paragraph(L10n.t("**Uncertainty / open questions:** %@", finding.uncertainty))
             }
             if let supporting = finding.evidenceRefs[.supports], !supporting.isEmpty {
                 out.blank()
-                out.paragraph("**Supporting evidence:**")
+                out.paragraph(L10n.t("**Supporting evidence:**"))
                 out.list(supporting.map { "\($0)" })
             }
             if let contradicting = finding.evidenceRefs[.contradicts], !contradicting.isEmpty {
                 out.blank()
-                out.paragraph("**Contradicting evidence:**")
+                out.paragraph(L10n.t("**Contradicting evidence:**"))
                 out.list(contradicting.map { "\($0)" })
             }
             if let context = finding.evidenceRefs[.context], !context.isEmpty {
                 out.blank()
-                out.paragraph("**Background evidence:**")
+                out.paragraph(L10n.t("**Background evidence:**"))
                 out.list(context.map { "\($0)" })
             }
         }
         out.blank()
 
         // Evidence
-        out.heading(2, "Evidence")
+        out.heading(2, L10n.t("Evidence"))
         if payload.evidences.isEmpty {
-            out.paragraph("_No evidence recorded._")
+            out.paragraph(L10n.t("_No evidence recorded._"))
         }
         for evidence in payload.evidences {
             out.blank()
@@ -72,21 +72,21 @@ enum MarkdownReportExporter {
             out.quote(evidence.text)
             var meta: [String] = []
             if let sourceRef = evidence.sourceRef {
-                meta.append("Source: \(sourceRef)")
+                meta.append(L10n.t("Source: %@", sourceRef))
             } else {
-                meta.append("Source: _personal note / unverified_")
+                meta.append(L10n.t("Source: _personal note / unverified_"))
             }
-            if !evidence.locationNote.isEmpty { meta.append("Location: \(evidence.locationNote)") }
-            if let page = evidence.pageNumber { meta.append("Page: \(page)") }
-            if !evidence.userNotes.isEmpty { meta.append("Notes: \(evidence.userNotes)") }
+            if !evidence.locationNote.isEmpty { meta.append(L10n.t("Location: %@", evidence.locationNote)) }
+            if let page = evidence.pageNumber { meta.append(L10n.t("Page: %lld", page)) }
+            if !evidence.userNotes.isEmpty { meta.append(L10n.t("Notes: %@", evidence.userNotes)) }
             out.paragraph(meta.joined(separator: " · "))
         }
         out.blank()
 
         // Timeline
-        out.heading(2, "Timeline")
+        out.heading(2, L10n.t("Timeline"))
         if payload.timeline.isEmpty {
-            out.paragraph("_No timeline events recorded._")
+            out.paragraph(L10n.t("_No timeline events recorded._"))
         }
         let datedEvents = payload.timeline.filter { $0.precision != .unknown }
             .sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
@@ -97,15 +97,15 @@ enum MarkdownReportExporter {
                 out.paragraph(event.detail)
             }
             if !event.notes.isEmpty {
-                out.paragraph("_Notes:_ \(event.notes)")
+                out.paragraph(L10n.t("_Notes:_ %@", event.notes))
             }
             if let sourceRef = event.sourceRef {
-                out.paragraph("_Source:_ \(sourceRef)")
+                out.paragraph(L10n.t("_Source:_ %@", sourceRef))
             }
         }
         if !unknownEvents.isEmpty {
             out.blank()
-            out.paragraph("**Date undetermined:**")
+            out.paragraph(L10n.t("**Date undetermined:**"))
             for event in unknownEvents {
                 out.listItem("\(event.title)")
             }
@@ -113,9 +113,9 @@ enum MarkdownReportExporter {
         out.blank()
 
         // Sources
-        out.heading(2, "Sources")
+        out.heading(2, L10n.t("Sources"))
         if payload.sources.isEmpty {
-            out.paragraph("_No sources recorded._")
+            out.paragraph(L10n.t("_No sources recorded._"))
         }
         for source in payload.sources {
             out.blank()
@@ -124,18 +124,18 @@ enum MarkdownReportExporter {
             if let url = source.urlString, let urlValue = URL(string: url), urlValue.scheme == "http" || urlValue.scheme == "https" {
                 meta.append("[\(url)](\(url))")
             } else if let rel = source.attachmentRelativePath {
-                meta.append("Attachment: `\(rel)`")
+                meta.append(L10n.t("Attachment: `%@`", rel))
             }
-            if !source.publisher.isEmpty { meta.append("Publisher: \(source.publisher)") }
-            if let published = source.publishedDate { meta.append("Published: \(dateString(published))") }
-            if source.isMissing { meta.append("⚠️ attachment file missing") }
-            if !source.userNotes.isEmpty { meta.append("Notes: \(source.userNotes)") }
+            if !source.publisher.isEmpty { meta.append(L10n.t("Publisher: %@", source.publisher)) }
+            if let published = source.publishedDate { meta.append(L10n.t("Published: %@", dateString(published))) }
+            if source.isMissing { meta.append(L10n.t("⚠️ attachment file missing")) }
+            if !source.userNotes.isEmpty { meta.append(L10n.t("Notes: %@", source.userNotes)) }
             out.paragraph(meta.joined(separator: " · "))
         }
         out.blank()
 
         // Unresolved
-        out.heading(2, "Unresolved Issues and Uncertainties")
+        out.heading(2, L10n.t("Unresolved Issues and Uncertainties"))
         var unresolved = payload.unresolvedNotes
         for evidence in payload.evidences where evidence.type == .unresolved {
             unresolved.append("\(citation(for: evidence)) \(evidence.text)")
@@ -144,7 +144,7 @@ enum MarkdownReportExporter {
             unresolved.append("\(finding.ref): \(finding.uncertainty)")
         }
         if unresolved.isEmpty {
-            out.paragraph("_None recorded._")
+            out.paragraph(L10n.t("_None recorded._"))
         } else {
             out.list(unresolved)
         }
@@ -162,19 +162,19 @@ enum MarkdownReportExporter {
     }
 
     static func dateOrPartial(_ event: ReportPayload.TimelineEventInfo) -> String {
-        guard let date = event.date else { return "Date unknown" }
+        guard let date = event.date else { return L10n.t("Date unknown") }
         switch event.precision {
         case .exact:
             let f = DateFormatter(); f.dateStyle = .long; f.timeStyle = .none
             return f.string(from: date)
         case .yearMonth:
-            let f = DateFormatter(); f.dateFormat = "MMMM yyyy"
+            let f = DateFormatter(); f.setLocalizedDateFormatFromTemplate("yMMMM")
             return f.string(from: date)
         case .year:
-            let f = DateFormatter(); f.dateFormat = "yyyy"
+            let f = DateFormatter(); f.setLocalizedDateFormatFromTemplate("y")
             return f.string(from: date)
         case .unknown:
-            return "Date unknown"
+            return L10n.t("Date unknown")
         }
     }
 }

@@ -8,11 +8,11 @@ enum URLValidationError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .empty:
-            return "Please enter a URL."
+            return String(localized: "Please enter a URL.")
         case .invalidScheme(let scheme):
-            return "Only http and https links are supported (got “\(scheme)”)."
+            return String(localized: "Only http and https links are supported (got “\(scheme)”).")
         case .malformed:
-            return "That doesn’t look like a valid web address."
+            return String(localized: "That doesn’t look like a valid web address.")
         }
     }
 }

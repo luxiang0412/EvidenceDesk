@@ -28,6 +28,12 @@ are real captures of the running app — no mockups.
    | `min-size-01-overview.png` | 980 × 640 minimum window |
    | `state-01-saved.png` | Save indicator after a real write |
 
+1b. **`artifacts/Screenshots/Chinese/`** — the same screens with
+   `-AppleLanguages (zh-Hans)`, plus the settings window
+   (`zh-overview/sources/evidence/findings/timeline/report/settings.png`).
+   OCR confirms translated chrome (概览 / 来源 / 证据 / 发现 / 时间线 / 报告,
+   研究问题, 已保存, 语言…) while fixture titles and IDs stay verbatim.
+
 2. **`artifacts/Screenshots/UITests/`** — functional UI-suite screenshots
    (`ui-*.png`), also window-only.
 
@@ -73,6 +79,8 @@ are real captures of the running app — no mockups.
 | No emoji as functional icons | Pass — SF Symbols only |
 | Screenshot contains no desktop/other apps | Pass — window-only captures |
 | Screenshot contains no personal paths | Pass — fixture data only (`example.gov`, synthetic titles) |
+| Chinese UI has no untranslated chrome | Pass — section titles, headings, buttons, save state, empty states, settings and report headings are translated; user data unchanged |
+| Both languages fit at 980×640 | Pass — Chinese is shorter than English, so English remains the constraint |
 
 ## Known capture caveats
 

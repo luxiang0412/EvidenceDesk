@@ -123,12 +123,25 @@ is enabled in every build, including tests.
   research text, URLs or file paths.
 - Test fixtures are synthetic and generated at runtime.
 
+## Languages
+
+The interface ships in **English** and **简体中文**.
+
+- **Language…** (View menu, or ⌘,) offers *Follow System Language / English /
+  简体中文*. The choice is stored per app; the UI applies it after you quit and
+  reopen (macOS resolves the app's localisation at launch). The settings screen
+  says so and offers a Quit button.
+- Exported Markdown headings follow the chosen language; case titles, short
+  codes (`S-001`), citations (`[E-002, S-001, p. 3]`) and your own text are
+  never translated.
+- Translations live in `EvidenceDesk/Resources/Localizable.xcstrings` and are
+  regenerated from `scripts/build-localization.py`.
+
 ## Keyboard shortcuts
 
 `⌘N` new case · `⌘I` import source · `⇧⌘E` export report · `⌘F` focus search ·
-`⌥⌘I` toggle inspector. Standard text editing shortcuts apply inside editors.
-There is intentionally no Settings shortcut because the app has no settings
-screen.
+`⌥⌘I` toggle inspector · `⌘,` language settings. Standard text editing shortcuts
+apply inside editors.
 
 ## Known limitations
 
@@ -156,6 +169,7 @@ screen.
 | `docs/SCREEN-SPECS.md` | per-screen states |
 | `docs/VISUAL-QA-CHECKLIST.md` | visual acceptance evidence |
 | `docs/PERFORMANCE-BASELINE.md` | scale and memory baseline |
+| `docs/DECISIONS.md` | including D-015 (why language switching needs a relaunch) |
 | `docs/RELEASE.md` | direct distribution vs Mac App Store |
 | `docs/FINAL-ACCEPTANCE-REPORT.md` | final delivery report |
 

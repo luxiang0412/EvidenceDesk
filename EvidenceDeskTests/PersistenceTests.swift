@@ -327,3 +327,97 @@ struct CaseFilterTests {
         #expect(CaseFilter.apply(to: [a, b], showArchived: false, query: "   ").count == 2)
     }
 }
+
+/// Language preference behaviour, tested without launching the UI.
+@MainActor
+struct LanguageSettingsTests {
+    /// An isolated defaults suite plus its name, so tests can inspect exactly
+    /// what this code wrote (the host app's own domain may also contain
+    /// `AppleLanguages`, which must not leak into assertions).
+    private func defaults() -> (defaults: UserDefaults, suite: String) {
+        let suite = "EvidenceDeskTests.language.\(UUID().uuidString)"
+        let d = UserDefaults(suiteName: suite)!
+        d.removePersistentDomain(forName: suite)
+        return (d, suite)
+    }
+
+    @Test func defaultChoiceIsSystem() {
+        let d = defaults().defaults
+        let settings = LanguageSettings(defaults: d)
+        #expect(settings.language == .system)
+    }
+
+    @Test func choosingChineseWritesAppleLanguages() {
+        let d = defaults().defaults
+        let settings = LanguageSettings(defaults: d)
+        settings.set(.simplifiedChinese)
+        #expect(d.stringArray(forKey: "AppleLanguages") == ["zh-Hans"])
+        #expect(d.string(forKey: LanguageSettings.choiceKey) == "zh-Hans")
+        #expect(settings.language == .simplifiedChinese)
+    }
+
+    @Test func choosingSystemRemovesOverride() {
+        let (d, suite) = defaults()
+        d.set(["zh-Hans"], forKey: "AppleLanguages")
+        let settings = LanguageSettings(defaults: d)
+        settings.set(.system)
+        // The override must be gone from what this code controls.
+        let written = d.persistentDomain(forName: suite) ?? [:]
+        #expect(written["AppleLanguages"] == nil, "the app must not keep pinning a language")
+    }
+
+    @Test func relaunchDetection() {
+        // No relaunch needed when the effective list already matches.
+        #expect(LanguageSettings.needsRelaunch(choice: .simplifiedChinese, effective: ["zh-Hans"]) == false)
+        #expect(LanguageSettings.needsRelaunch(choice: .english, effective: ["en"]) == false)
+        // Mismatch means the change is still pending.
+        #expect(LanguageSettings.needsRelaunch(choice: .simplifiedChinese, effective: ["en"]) == true)
+        #expect(LanguageSettings.needsRelaunch(choice: .english, effective: ["zh-Hans"]) == true)
+        // System + a leftover single-language override is pending.
+        #expect(LanguageSettings.needsRelaunch(choice: .system, effective: ["zh-Hans"]) == true)
+        // System with the real system list is fine.
+        #expect(LanguageSettings.needsRelaunch(choice: .system, effective: ["en", "zh-Hans"]) == false)
+        #expect(LanguageSettings.needsRelaunch(choice: .system, effective: []) == false)
+    }
+
+    @Test func choiceRoundTripsThroughDefaults() {
+        let d = defaults().defaults
+        LanguageSettings(defaults: d).set(.simplifiedChinese)
+        let reloaded = LanguageSettings(defaults: d)
+        #expect(reloaded.language == .simplifiedChinese)
+    }
+}
+
+/// The compiled String Catalog must actually contain the Chinese translations.
+struct LocalizationCatalogTests {
+    private func bundle(for language: String) -> Bundle? {
+        guard let path = Bundle.main.path(forResource: language, ofType: "lproj") else { return nil }
+        return Bundle(path: path)
+    }
+
+    @Test func chineseBundleTranslatesCoreStrings() {
+        guard let zh = bundle(for: "zh-Hans") else {
+            Issue.record("zh-Hans.lproj missing from the app bundle")
+            return
+        }
+        #expect(zh.localizedString(forKey: "Sources", value: nil, table: nil) == "来源")
+        #expect(zh.localizedString(forKey: "Evidence", value: nil, table: nil) == "证据")
+        #expect(zh.localizedString(forKey: "Fact", value: nil, table: nil) == "事实")
+        #expect(zh.localizedString(forKey: "Saved", value: nil, table: nil) == "已保存")
+        #expect(zh.localizedString(forKey: "Research Question", value: nil, table: nil) == "研究问题")
+    }
+
+    @Test func englishFallsBackToTheKey() {
+        guard let en = bundle(for: "en") else {
+            Issue.record("en.lproj missing from the app bundle")
+            return
+        }
+        #expect(en.localizedString(forKey: "Sources", value: nil, table: nil) == "Sources")
+    }
+
+    @Test func appDeclaresBothLocalizations() {
+        let localizations = Set(Bundle.main.localizations)
+        #expect(localizations.contains("en"))
+        #expect(localizations.contains("zh-Hans"))
+    }
+}

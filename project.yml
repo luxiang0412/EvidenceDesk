@@ -32,6 +32,10 @@ targets:
         NSPrincipalClass: NSApplication
         NSHumanReadableCopyright: "Copyright © 2026."
         CFBundleIconName: AppIcon
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
+        CFBundleDevelopmentRegion: en
     entitlements:
       path: EvidenceDesk/EvidenceDesk.entitlements
       properties:

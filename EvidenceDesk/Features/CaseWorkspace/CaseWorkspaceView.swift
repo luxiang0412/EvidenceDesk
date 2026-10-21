@@ -123,12 +123,12 @@ struct DetailRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(label).foregroundStyle(colors.secondaryText)
+            Text(L10n.t(label)).foregroundStyle(colors.secondaryText)
             Spacer()
             Text(value).multilineTextAlignment(.trailing)
         }
         .font(DesignSystem.Typography.secondary)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel("\(L10n.t(label)): \(value)")
     }
 }

@@ -9,13 +9,21 @@
 | ⌘⇧E | Export report | `AppCommands` → `AppActions` → `CaseWorkspaceView` / `ReportPreviewView` |
 | ⌘F | Focus search | `AppCommands` → `AppActions` (searchable field) |
 | ⌥⌘I | Toggle inspector | `AppCommands` → `AppActions` → `MainWindowView` |
-| ⌘, | *not bound* | No settings screen exists, so the shortcut is intentionally absent |
+| ⌘, | Language settings | `SettingsLink` in `AppCommands` + standard Settings scene |
 | ⌘W / ⌘Q | Close window / quit | System |
 | ⌘Z / ⇧⌘Z | Undo / redo | System text editing (text fields and editors) |
 | ⌘X/C/V/A | Cut/copy/paste/select all | System |
 
 Menus and toolbar buttons both call `AppActions.shared.send(...)`. There is no
 second implementation of any command.
+
+## Language
+
+- `View ▸ Language…` (also ⌘, and the app menu) opens the only settings screen.
+- Options: 跟随系统语言 / English / 简体中文, each shown in its own language.
+- A change writes `AppleLanguages` for the app and shows a "relaunch to apply"
+  notice with a Quit button; the UI language changes on next launch.
+- Switching language never touches research content, dates, IDs or citations.
 
 ## Drag & drop
 

@@ -14,23 +14,33 @@ struct SaveStateIndicator: View {
     var body: some View {
         switch state {
         case .idle:
-            Text("Not saved").foregroundStyle(.secondary)
+            Text(L10n.t("Not saved")).foregroundStyle(.secondary)
         case .saving:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
-                Text("Saving…")
+                Text(L10n.t("Saving…"))
             }
             .foregroundStyle(.secondary)
         case .saved:
-            Label("Saved", systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-                .accessibilityLabel("Saved")
-                .accessibilityIdentifier("saveState.saved")
+            // One explicit element: `Label` + identifier alone exposed an empty
+            // accessibility label on this SDK (D-014).
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.circle.fill")
+                Text(L10n.t("Saved"))
+            }
+            .foregroundStyle(.green)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.t("Saved"))
+            .accessibilityIdentifier("saveState.saved")
         case .failed(let message):
-            Label(message, systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-                .accessibilityLabel("Save failed: \(message)")
-                .accessibilityIdentifier("saveState.failed")
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                Text(L10n.t("Save failed: %@", message))
+            }
+            .foregroundStyle(.red)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.t("Save failed: %@", message))
+            .accessibilityIdentifier("saveState.failed")
         }
     }
 }

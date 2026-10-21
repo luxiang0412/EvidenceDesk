@@ -8,9 +8,9 @@ enum PersistenceError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .saveFailed(let detail):
-            return "Your changes could not be saved. \(detail)"
+            return String(localized: "Your changes could not be saved. \(detail)")
         case .itemNotFound:
-            return "That item no longer exists."
+            return String(localized: "That item no longer exists.")
         }
     }
 }

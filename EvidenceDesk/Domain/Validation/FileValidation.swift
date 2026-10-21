@@ -11,16 +11,16 @@ enum FileValidationError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .unsupportedType(let name):
-            return "“\(name)” is not a supported file type. Please provide a PDF, TXT or Markdown file."
+            return String(localized: "“\(name)” is not a supported file type. Please provide a PDF, TXT or Markdown file.")
         case .emptyFile:
-            return "The file is empty."
+            return String(localized: "The file is empty.")
         case .unreadable:
-            return "The file could not be read."
+            return String(localized: "The file could not be read.")
         case .tooLarge(let size):
             let mb = Double(size) / (1024 * 1024)
             return String(format: "The file is %.1f MB. Files larger than 100 MB are not supported.", mb)
         case .noAccess:
-            return "The file could not be accessed."
+            return String(localized: "The file could not be accessed.")
         }
     }
 }

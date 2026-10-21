@@ -155,16 +155,20 @@ struct TimelineEventRow: View {
     }
 
     private var displayDate: String {
-        guard let date = event.date else { return "Date unknown" }
+        guard let date = event.date else { return L10n.t("Date unknown") }
         switch event.datePrecision {
         case .exact:
             return date.formatted(date: .abbreviated, time: .omitted)
         case .yearMonth:
-            let f = DateFormatter(); f.dateFormat = "MMM yyyy"; return f.string(from: date)
+            let f = DateFormatter()
+            f.setLocalizedDateFormatFromTemplate("yMMMM")
+            return f.string(from: date)
         case .year:
-            let f = DateFormatter(); f.dateFormat = "yyyy"; return f.string(from: date)
+            let f = DateFormatter()
+            f.setLocalizedDateFormatFromTemplate("y")
+            return f.string(from: date)
         case .unknown:
-            return "Date unknown"
+            return L10n.t("Date unknown")
         }
     }
 }

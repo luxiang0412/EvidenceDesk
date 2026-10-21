@@ -366,3 +366,62 @@ matter for VoiceOver users, not just for tests.
 **Verification.** 20 UI tests pass twice consecutively; the accessibility tree
 contains non-empty labels and reachable actions (dumps recorded during
 development, summarised in `docs/VISUAL-QA-CHECKLIST.md`).
+
+---
+
+## D-015 — Language switching: String Catalog + `AppleLanguages`, relaunch to apply
+
+**Requirement.** The app must support Chinese and English, with the user able to
+switch language inside the app.
+
+**What was tried first (and rejected).** Injecting
+`.environment(\.locale, Locale(identifier: …))` on the root scene for instant,
+restart-free switching. On macOS 27 / SwiftUI 27.1 this **prevented the main
+window from being created at all** — the process started, ran the event loop and
+never showed a window (reproducible with and without XCUITest). It was bisected
+against a minimal change and reverted.
+
+**Decision.**
+
+- All UI strings live in `EvidenceDesk/Resources/Localizable.xcstrings`
+  (String Catalog, `en` source + `zh-Hans`), generated from
+  `scripts/build-localization.py` so the translation table is reviewable in one
+  place.
+- `CFBundleLocalizations` declares `en` and `zh-Hans`, so macOS localisation
+  (menus, buttons, `Text`, `String(localized:)`) works normally.
+- Components whose parameters are `String` (section titles, empty states,
+  headers, stat cards, inspector rows, save indicator, report exporter) resolve
+  through `L10n.t(_:)`, because `Text("…")` only localises
+  `LocalizedStringKey`/literals. `L10n.t` also formats keys with `%@`/`%lld`.
+- `LanguageSettings` stores the choice and writes `AppleLanguages` for the app
+  domain. The Settings screen (`View ▸ Language…`, ⌘,) explains that a relaunch
+  is required and offers "Quit Evidence Desk"; it shows a notice while the
+  change is pending.
+- Dates use `setLocalizedDateFormatFromTemplate` so month names follow the
+  language; report headings are localised, so an exported Chinese report reads
+  in Chinese while IDs and citations stay language-neutral.
+
+**Why relaunch instead of instant switching.** AppKit resolves the bundle's
+localisation at launch. The only supported override (`AppleLanguages`) is read
+then. Instant switching would require resolving every string through a custom
+bundle at render time *and* rebuilding the tree — a large refactor with real
+regression risk for a five-screen app. The Settings screen states the
+requirement plainly instead of pretending.
+
+**Impact.** Adding a third language is a catalog-only change (plus an
+`AppLanguage` case). No string in the app is hardcoded to a language at the
+source level.
+
+**Verification.**
+- `LanguageSettingsTests` (5 tests): default is system, choosing Chinese writes
+  `AppleLanguages = ["zh-Hans"]`, choosing system removes the override, relaunch
+  detection matrix, round-trip through defaults.
+- `LocalizationCatalogTests` (3 tests): the compiled `zh-Hans.lproj` translates
+  core strings ("Sources" → "来源"), English falls back to the key, and the
+  bundle declares both localisations.
+- `LanguageUITests` (4 tests): launches in Chinese via
+  `-AppleLanguages (zh-Hans)`, asserts translated section titles, headings, save
+  indicator and report headings; switches back to English; opens the settings
+  window from the View menu; and checks that research data is untouched.
+- Screenshots: `artifacts/Screenshots/Chinese/zh-*.png` (overview, sources,
+  evidence, findings, timeline, report, settings), OCR-verified.

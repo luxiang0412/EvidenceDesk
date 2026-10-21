@@ -30,6 +30,9 @@ First complete release of the local-first research workspace.
   source list with clickable URLs and relative attachment paths, plus unresolved
   issues. Portable case bundle with `manifest.json` (`schemaVersion`, stable
   IDs, relative paths) and copied attachments.
+- **Languages**: English + 简体中文 via a String Catalog; **View ▸ Language…**
+  (⌘,) switches language (applies after relaunch, stated in the UI). Exported
+  report headings follow the language; IDs and citations stay neutral.
 - **Data integrity**: explicit saves with `Saving/Saved/Failed` states, startup
   consistency check for missing and orphaned attachments, attachment staging with
   size verification and rollback on failure.
@@ -40,8 +43,8 @@ First complete release of the local-first research workspace.
 
 ### Quality
 
-- 66 Swift Testing tests (unit + integration) and 20 XCTest UI tests
-  (14 behavioural flows + 6 screenshot/state captures).
+- 74 Swift Testing tests (unit + integration) and 24 XCTest UI tests
+  (18 behavioural flows incl. 4 language tests + 6 screenshot/state captures).
 - App icon (asset catalog) generated from `scripts/generate-app-icon.swift`.
 - `CaseFilter` extracted for testable library search/archive behaviour.
 - `scripts/verify-all.sh` runs environment → generate → build → unit tests →

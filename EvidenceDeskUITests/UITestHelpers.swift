@@ -88,3 +88,14 @@ extension XCTestCase {
             .firstMatch
     }
 }
+
+extension XCTestCase {
+    /// Launch arguments that pin the UI language for one process.
+    ///
+    /// `-AppleLanguages` lands in NSArgumentDomain, so it overrides whatever the
+    /// app has persisted without writing any state — UI tests stay deterministic
+    /// no matter what language the machine or a previous run left behind.
+    static func languageArguments(_ identifier: String) -> [String] {
+        ["-AppleLanguages", "(\(identifier))"]
+    }
+}

@@ -149,7 +149,29 @@ shows an error banner explaining that original data is untouched.
 
 ---
 
-## 8. Fatal startup error
+## 8. Settings (language)
+
+**Reachable from.** App menu / `View ▸ Language…` / ⌘, — the app now has a real
+settings screen, which is the only reason the shortcut is bound.
+
+**Contents.** Section title "Language", one-paragraph explanation that the
+change applies after relaunch and that research data is never translated, a
+radio group (`跟随系统语言` / `English` / `简体中文`, each in its own language),
+a pending-change notice with a *Quit Evidence Desk* button, and a short privacy
+note.
+
+**States.** No pending change (notice hidden) / pending change (notice visible).
+
+## 9. Language behaviour
+
+Every screen is specified above in both `en` and `zh-Hans`; strings come from
+`Localizable.xcstrings` and are never concatenated by hand. Layout is checked in
+both languages at 980 × 640 (Chinese labels are shorter; English is the
+constraint). Empty states, save feedback, dialogs, menu titles and the exported
+Markdown headings are all translated; user-entered text, short codes and
+citations are not.
+
+## 10. Fatal startup error
 
 Only when the data store cannot open: title explaining the store failed, the
 underlying message, and Quit / Retry. Never a silent blank window.

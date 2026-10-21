@@ -36,6 +36,16 @@ precedence over any expectation in the task brief.
 - Hardened runtime is disabled for Debug so the local ad-hoc signed app and
   the XCTest UI runner can load. A distribution build must re-enable it.
 
+## Localisation notes
+
+- The app ships `en` + `zh-Hans` (`CFBundleLocalizations`), built from
+  `Resources/Localizable.xcstrings`.
+- `.environment(\.locale, …)` on the root scene makes the main window fail to
+  appear on macOS 27 / SwiftUI 27.1; language is therefore applied through
+  `AppleLanguages` + relaunch (`docs/DECISIONS.md` D-015).
+- UI tests pin the language per launch with `-AppleLanguages (en)` /
+  `(zh-Hans)` so results never depend on the machine's language.
+
 ## Reproduction
 
 ```bash

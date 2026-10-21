@@ -13,9 +13,9 @@ enum FindingStatus: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .draft: return "Draft"
-        case .active: return "Active"
-        case .superseded: return "Superseded"
+        case .draft: return String(localized: "Draft")
+        case .active: return String(localized: "Active")
+        case .superseded: return String(localized: "Superseded")
         }
     }
 }
