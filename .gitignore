@@ -1,0 +1,29 @@
+# Xcode generated project (project.yml is the source of truth)
+EvidenceDesk.xcodeproj/
+
+# Build artifacts
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+
+# Evidence artifacts (local working evidence, not committed)
+artifacts/
+
+# macOS
+.DS_Store
+
+# Signing / secrets
+*.p12
+*.mobileprovision
+*.cer
+*.key
+*.pem
+*.provisionprofile
+AuthKey_*.p8
+
+# IDE
+.idea/
+*.swp
+.vscode/
