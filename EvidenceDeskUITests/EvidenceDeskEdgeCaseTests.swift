@@ -4,12 +4,13 @@ import XCTest
 /// test; never touches real user data or the network.
 final class EvidenceDeskEdgeCaseTests: XCTestCase {
     var app: XCUIApplication!
-    var storageName = "EvidenceDesk-UIEdge-\(UUID().uuidString)"
+    let storageName = "EvidenceDesk-UIEdge"
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName]
+        app.launchArguments = ["--test-storage-name", storageName,
+                               "--reset-test-storage"]
         app.launch()
         app.activate()
     }
@@ -18,8 +19,7 @@ final class EvidenceDeskEdgeCaseTests: XCTestCase {
         app?.terminate()
         app = nil
 
-        // Locate and remove this run's isolated storage inside the app container.
-        removeIsolatedStorage()
+        app = nil
     }
 
     func testEmptyStateOffersFirstAction() throws {
@@ -103,14 +103,6 @@ final class EvidenceDeskEdgeCaseTests: XCTestCase {
 
     private func emptyTitle(_ label: String) -> XCUIElement {
         app.staticTexts[label].firstMatch
-    }
-
-    /// Deletes the isolated store directory the app created for this test.
-    private func removeIsolatedStorage() {
-        let base = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Containers/com.luxiang0412.EvidenceDesk/Data/tmp/EvidenceDeskUITest", isDirectory: true)
-        let target = base.appendingPathComponent(storageName, isDirectory: true)
-        try? FileManager.default.removeItem(at: target)
     }
 
     private func attach(_ name: String) {

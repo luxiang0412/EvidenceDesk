@@ -36,6 +36,11 @@ final class AppEnvironment {
             root = fileManager.temporaryDirectory
                 .appendingPathComponent("EvidenceDeskUITest", isDirectory: true)
                 .appendingPathComponent(safeName, isDirectory: true)
+            // Opt-in wipe so a UI test can start from a known-empty library.
+            // Only ever applied to the isolated `EvidenceDeskUITest` subtree.
+            if arguments.contains("--reset-test-storage") {
+                try? fileManager.removeItem(at: root)
+            }
         } else {
             let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
                 ?? fileManager.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")

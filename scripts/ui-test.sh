@@ -23,6 +23,13 @@ xcodebuild test \
 STATUS=${PIPESTATUS[0]}
 set -e
 
+# The sandboxed app's test stores live inside its own container, which the
+# sandboxed test runner cannot delete. Clean them up from here.
+CONTAINER_TESTS="$HOME/Library/Containers/com.luxiang0412.EvidenceDesk/Data/tmp/EvidenceDeskUITest"
+if [ -d "$CONTAINER_TESTS" ]; then
+  find "$CONTAINER_TESTS" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+fi
+
 echo "Full log: $LOG_DIR/uitest.log"
 echo "xcresult: $RESULT_BUNDLE"
 if [ "$STATUS" -ne 0 ]; then

@@ -10,10 +10,10 @@ final class ScreenshotTests: XCTestCase {
     var app: XCUIApplication!
 
     private func launch(seed: Bool,
+                        storageName: String = "EvidenceDesk-Shot",
                         extraArguments: [String] = [],
                         environment: [String: String] = [:]) {
-        let name = "EvidenceDesk-Shot-\(UUID().uuidString)"
-        var args = ["--test-storage-name", name]
+        var args = ["--test-storage-name", storageName, "--reset-test-storage"]
         if seed { args.append("--seed-demo") }
         args.append(contentsOf: extraArguments)
 

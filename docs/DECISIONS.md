@@ -91,14 +91,21 @@ unavailable.
 
 **Decision.** Add explicitly gated launch flags, inert without them:
 
-- `--test-storage <dir>` — isolated Application Support root (used by tests and
-  all QA runs; never touches real user data).
+- `--test-storage <dir>` — isolated Application Support root.
+- `--test-storage-name <name>` — isolated root resolved **inside the app's own
+  sandbox container** (required under the sandbox; UI tests use this).
+- `--reset-test-storage` — wipes only the `EvidenceDeskUITest/<name>` subtree so
+  a test can start from an empty library. Ignored without
+  `--test-storage-name`.
 - `--seed-demo` — writes a synthetic case with a generated PDF and text
   attachment into that isolated storage.
 - `--screenshot <path>` — renders the live window's content view to PNG, then
   exits.
 - `--appearance light|dark`, `--window-size W,H`, `--ed-section <name>`,
-  `--ed-select <short code>` — set state for that render.
+  `--ed-select <short code>` — set state for that render. UI tests use the
+  environment equivalents `EVIDENCE_DESK_APPEARANCE` and
+  `EVIDENCE_DESK_WINDOW_SIZE`, because XCTest argument passing proved
+  unreliable for those two switches.
 - `--ed-trace` — append startup milestones to `/tmp/ed-trace.txt`.
 
 **Impact.** Product behaviour is unchanged without the flags. Screenshots are

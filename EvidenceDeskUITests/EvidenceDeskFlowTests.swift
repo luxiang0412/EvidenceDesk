@@ -4,12 +4,15 @@ import XCTest
 /// storage directory (never the real user store) and a synthetic fixture.
 final class EvidenceDeskFlowTests: XCTestCase {
     var app: XCUIApplication!
-    let storageName = "EvidenceDesk-Flow-\(UUID().uuidString)"
+    /// Stable per-class name; wiped with `--reset-test-storage`. Must differ
+    /// from other classes so suites never share a store.
+    let storageName = "EvidenceDesk-Flow"
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName, "--seed-demo"]
+        app.launchArguments = ["--test-storage-name", storageName,
+                               "--reset-test-storage", "--seed-demo"]
         app.launch()
         app.activate()
     }
@@ -18,8 +21,7 @@ final class EvidenceDeskFlowTests: XCTestCase {
         app?.terminate()
         app = nil
 
-        // Locate and remove this run's isolated storage inside the app container.
-        removeIsolatedStorage()
+        app = nil
     }
 
     // MARK: - Core loop over seeded data
@@ -115,14 +117,6 @@ final class EvidenceDeskFlowTests: XCTestCase {
 
     private func row(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
-    }
-
-    /// Deletes the isolated store directory the app created for this test.
-    private func removeIsolatedStorage() {
-        let base = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Containers/com.luxiang0412.EvidenceDesk/Data/tmp/EvidenceDeskUITest", isDirectory: true)
-        let target = base.appendingPathComponent(storageName, isDirectory: true)
-        try? FileManager.default.removeItem(at: target)
     }
 
     private func attach(_ name: String) {

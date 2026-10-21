@@ -54,7 +54,9 @@ Rules of thumb:
 - Unit/integration: Swift Testing (`EvidenceDeskTests`). Use isolated in-memory
   or UUID-scoped on-disk stores.
 - UI: XCTest (`EvidenceDeskUITests`). Always launch with
-  `--test-storage-name <unique>`; never touch the real library.
+  `--test-storage-name <stable-per-class-name> --reset-test-storage` so each run
+  starts from an empty library inside the app's sandbox container; never touch
+  the real library. `scripts/ui-test.sh` cleans those stores afterwards.
 - Add a test for every bug fix. Do not delete, skip, or weaken a test to make a
   run green.
 
