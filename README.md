@@ -77,7 +77,7 @@ open artifacts/DerivedData/Build/Products/Debug/EvidenceDesk.app
 ## Test
 
 ```bash
-./scripts/test.sh      # Swift Testing: unit + integration (52+ tests)
+./scripts/test.sh      # Swift Testing: unit + integration (58 tests)
 ./scripts/ui-test.sh   # XCTest UI automation against the real app (11 tests)
 ./scripts/verify-all.sh  # env → generate → build → unit tests → UI tests
 SKIP_UI_TESTS=1 ./scripts/verify-all.sh   # if UI automation is unavailable

@@ -85,3 +85,32 @@ struct AttachmentStoreTests {
         return f
     }
 }
+/// Read-only destination behaviour: staging must fail loudly, never half-succeed.
+@MainActor
+struct AttachmentStoreFailureTests {
+    @Test func stagingIntoReadOnlyRootFails() throws {
+        let base = FileManager.default.temporaryDirectory
+            .appendingPathComponent("EvidenceDesk-ROStore-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: base.path)
+            try? FileManager.default.removeItem(at: base)
+        }
+
+        let sourceFile = base.appendingPathComponent("doc.pdf")
+        try Data("pdf".utf8).write(to: sourceFile)
+
+        let attachmentsRoot = base.appendingPathComponent("Attachments", isDirectory: true)
+        try FileManager.default.createDirectory(at: attachmentsRoot, withIntermediateDirectories: true)
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: attachmentsRoot.path)
+
+        let store = AttachmentStore(root: attachmentsRoot)
+        var thrown: Error?
+        do {
+            _ = try store.stageImport(from: sourceFile, sourceID: UUID())
+        } catch {
+            thrown = error
+        }
+        #expect(thrown != nil, "staging into a read-only attachments root must fail")
+    }
+}

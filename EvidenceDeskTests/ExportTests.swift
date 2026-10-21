@@ -184,3 +184,60 @@ struct ExportTests {
         try? FileManager.default.removeItem(at: dir)
     }
 }
+/// Error-path coverage for unwritable destinations (P6 requirement).
+@MainActor
+struct ExportFailureTests {
+    @Test func archiveToReadOnlyDirectoryFailsHonestly() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let researchCase = try persistence.createCase(title: "Read-only export")
+
+        let parent = FileManager.default.temporaryDirectory
+            .appendingPathComponent("EvidenceDesk-RO-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        defer {
+            // Restore permissions before cleanup so the temp dir can be removed.
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: parent.path)
+            try? FileManager.default.removeItem(at: parent)
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: parent.path)
+        let target = parent.appendingPathComponent("out", isDirectory: true)
+
+        let exporter = CaseArchiveExporter(attachments: persistence.attachments)
+        var thrown: Error?
+        do {
+            try exporter.exportCase(researchCase, to: target)
+        } catch {
+            thrown = error
+        }
+        #expect(thrown != nil, "export into a read-only directory must fail, not pretend success")
+        if let exportError = thrown as? ExportError {
+            switch exportError {
+            case .targetNotWritable, .copyFailed, .reportGenerationFailed, .manifestEncodingFailed:
+                break
+            case .attachmentMissing(let name):
+                Issue.record("unexpected attachmentMissing for \(name)")
+            }
+        } else if thrown != nil {
+            // A raw Cocoa permission error is also an honest failure.
+        }
+    }
+
+    @Test func unopenableStoreSurfacesAsFailure() throws {
+        let parent = FileManager.default.temporaryDirectory
+            .appendingPathComponent("EvidenceDesk-NoWrite-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: parent.path)
+            try? FileManager.default.removeItem(at: parent)
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: parent.path)
+
+        var threw = false
+        do {
+            _ = try ModelContainerFactory.make(storageRoot: parent)
+        } catch {
+            threw = true
+        }
+        #expect(threw, "an unwritable store must throw so the app can show FatalErrorView")
+    }
+}

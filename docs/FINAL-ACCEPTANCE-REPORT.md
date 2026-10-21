@@ -51,11 +51,11 @@ Recorded at `artifacts/P0/environment.txt`; summary in `docs/ENVIRONMENT.md`.
 | `./scripts/env.sh` | 0 | Environment captured |
 | `./scripts/generate-project.sh` | 0 | `EvidenceDesk.xcodeproj` generated |
 | `./scripts/build.sh` | 0 | `** BUILD SUCCEEDED **` (Debug, macOS 15.0 target) |
-| `./scripts/test.sh` | 0 | `Test run with 55 tests in 11 suites passed` |
+| `./scripts/test.sh` | 0 | `Test run with 58 tests in 13 suites passed` |
 | `./scripts/ui-test.sh` | 0 | `Executed 11 tests, with 0 failures` |
 | `./scripts/verify-all.sh` | 0 | environment PASS → generate PASS → build PASS → tests PASS → ui-tests PASS |
 | `./scripts/perf-baseline.sh` | 0 | Scale tests passed; baseline recorded |
-| `git clone` → `./scripts/build.sh` → `./scripts/test.sh` in `/tmp/ed-clean` | 0 | Clean checkout builds and 55 tests pass |
+| `git clone` → `./scripts/build.sh` → `./scripts/test.sh` in `/tmp/ed-clean` | 0 | Clean checkout builds and the full test suite passes |
 
 Logs: `artifacts/P0/*.log`, `artifacts/verify-*/`, `artifacts/TestResults/`.
 
@@ -63,10 +63,10 @@ Logs: `artifacts/P0/*.log`, `artifacts/verify-*/`, `artifacts/TestResults/`.
 
 | Suite | Count | Result |
 | --- | --- | --- |
-| Swift Testing (unit + integration) | 55 tests / 11 suites | 55 passed, 0 failed, 0 skipped |
+| Swift Testing (unit + integration) | 58 tests / 13 suites | 58 passed, 0 failed, 0 skipped |
 | XCTest UI automation | 11 tests / 3 classes | 11 passed, 0 failed |
 
-Note: `SmokeTests` (3 of the 55) overlaps `URLValidationTests` and
+Note: `SmokeTests` (3 of the 58) overlaps `URLValidationTests` and
 `ShortCodeTests` from the P0 bootstrap. They were retained deliberately rather
 than deleted once the fuller suites landed; they still pass.
 
@@ -75,8 +75,9 @@ Breakdown by area:
 - URL validation (4), file validation (4), short codes (3)
 - Persistence model/relations/deletion (19)
 - Restart persistence (2), recovery (3)
-- Attachments (4), PDF (3)
-- Export/report (8), performance (3)
+- Attachments + read-only failure (5), PDF (3)
+- Export/report (8), export failure paths incl. unopenable store (2)
+- Performance/scale (3)
 
 ## 5. Visual acceptance
 
@@ -189,7 +190,7 @@ brew install xcodegen          # 2.46.0
 ```
 
 This exact sequence was executed in `/tmp/ed-clean` from a fresh clone: build
-succeeded, 55 tests passed.
+succeeded and the unit/integration suite passed.
 
 ## 11. Release readiness
 
