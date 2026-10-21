@@ -24,6 +24,13 @@ precedence over any expectation in the task brief.
   APIs newer than macOS 15 are avoided; the one encounter with
   `UTType.markdown` (macOS 27+) was replaced with `.plainText` / `.text`
   conformance checks — see `docs/DECISIONS.md`.
+- **App Sandbox is enabled in every build**, including Debug and tests. The
+  entitlements are declared in `project.yml` (`entitlements.properties`) because
+  XcodeGen regenerates the plist (`docs/DECISIONS.md` D-011). Verified with
+  `codesign -d --entitlements :- <app>` showing `com.apple.security.app-sandbox`.
+- Because the app is sandboxed, its data lives in
+  `~/Library/Containers/com.luxiang0412.EvidenceDesk/Data/...`. Tests and QA runs
+  use `--test-storage-name <name>`, which resolves inside that container.
 - Debug builds use ad-hoc signing (`CODE_SIGN_IDENTITY = "-"`). This is *not*
   a distributable signature; see `docs/RELEASE.md`.
 - Hardened runtime is disabled for Debug so the local ad-hoc signed app and

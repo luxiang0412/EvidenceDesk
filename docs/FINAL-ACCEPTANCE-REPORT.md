@@ -213,8 +213,12 @@ brew install xcodegen          # 2.46.0
 ./scripts/perf-baseline.sh
 ```
 
-This exact sequence was executed in `/tmp/ed-clean` from a fresh clone: build
-succeeded and the unit/integration suite passed.
+This exact sequence was executed twice from fresh clones:
+
+- `/tmp/ed-clean` — build succeeded, unit/integration suite passed.
+- `/tmp/ed-clean2` — `SKIP_UI_TESTS=1 ./scripts/verify-all.sh` passed all
+  stages, then `./scripts/ui-test.sh` executed **16 tests with 0 failures**,
+  and the built app's entitlements still contained `com.apple.security.app-sandbox`.
 
 ## 11. Release readiness
 
