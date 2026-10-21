@@ -28,8 +28,8 @@ final class LaunchTests: XCTestCase {
     func testFirstLaunchShowsEmptyState() throws {
         let window = app.windows.firstMatch
         XCTAssertTrue(window.waitForExistence(timeout: 25))
-        XCTAssertTrue(app.staticTexts["No Research Cases"].waitForExistence(timeout: 15),
-                      "First launch must explain the empty library")
+        assertEmptyState("No Research Cases", in: app,
+                         timeout: 25)
         XCTAssertTrue(app.buttons["New Research Case"].firstMatch.exists,
                       "Empty state must offer a first action")
     }

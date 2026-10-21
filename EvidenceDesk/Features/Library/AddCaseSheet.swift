@@ -33,6 +33,7 @@ struct AddCaseSheet: View {
                 Text("Research Question").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $question)
                     .font(DesignSystem.Typography.body)
+                    .accessibilityLabel("Research question")
                     .frame(height: 72)
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
             }
@@ -41,6 +42,7 @@ struct AddCaseSheet: View {
                 Text("Research Scope / Background").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $scope)
                     .font(DesignSystem.Typography.body)
+                    .accessibilityLabel("Research scope and background")
                     .frame(height: 72)
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
             }
@@ -62,7 +64,7 @@ struct AddCaseSheet: View {
         guard let persistence else { return }
         do {
             let created = try persistence.createCase(title: title, researchQuestion: question, researchScope: scope)
-            onCreated(created)
+            Task { @MainActor in onCreated(created) }
         } catch {
             errorText = error.localizedDescription
         }

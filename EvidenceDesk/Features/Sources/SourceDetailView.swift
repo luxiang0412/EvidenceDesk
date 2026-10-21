@@ -82,16 +82,22 @@ struct SourceDetailView: View {
 
     private var header: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: source.sourceType.systemImage)
-                .font(.system(size: 28))
-                .foregroundStyle(colors.accent)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(source.title)
-                    .font(DesignSystem.Typography.pageTitle)
-                Text("\(source.shortCode) · \(source.sourceType.displayName)")
-                    .font(DesignSystem.Typography.metadata)
-                    .foregroundStyle(colors.secondaryText)
+            // Only the icon + titles form one announced unit. Buttons stay
+            // individual elements so VoiceOver and automation can reach them.
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: source.sourceType.systemImage)
+                    .font(.system(size: 28))
+                    .foregroundStyle(colors.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(source.title)
+                        .font(DesignSystem.Typography.pageTitle)
+                    Text("\(source.shortCode) · \(source.sourceType.displayName)")
+                        .font(DesignSystem.Typography.metadata)
+                        .foregroundStyle(colors.secondaryText)
+                }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(source.shortCode), \(source.title), \(source.sourceType.displayName)")
             Spacer()
             if source.sourceType == .url {
                 Button {
@@ -102,15 +108,17 @@ struct SourceDetailView: View {
                     Label("Open in Browser", systemImage: "safari")
                 }
                 .help("Opens the link in your default browser")
+                .accessibilityLabel("Open in Browser")
+                .accessibilityIdentifier("source.openInBrowser")
             }
             Button(role: .destructive) {
                 confirmDelete = true
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+            .accessibilityLabel("Delete Source")
+            .accessibilityIdentifier("source.delete")
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(source.shortCode), \(source.title), \(source.sourceType.displayName)")
     }
 
     private var attachedEvidenceCount: Int { source.evidences.count }
@@ -144,6 +152,7 @@ struct SourceDetailView: View {
             } label: {
                 Label("Add Evidence from This Source", systemImage: "quote.bubble")
             }
+            .accessibilityIdentifier("source.addEvidence")
         }
         .padding(DesignSystem.Spacing.md)
         .background(colors.surface, in: RoundedRectangle(cornerRadius: DesignSystem.Radius.medium))
@@ -229,6 +238,7 @@ struct SourceDetailView: View {
                 SaveStateIndicator(state: saveState)
                 Spacer()
                 Button("Save Metadata") { performSave() }
+                    .accessibilityIdentifier("source.saveMetadata")
             }
         }
     }
@@ -279,6 +289,7 @@ struct SourceDetailView: View {
                     showRelocatePanel = false
                     relocateFileOpen = true
                 }
+                .accessibilityIdentifier("source.relinkFile")
                 .buttonStyle(.borderedProminent)
             }
         }

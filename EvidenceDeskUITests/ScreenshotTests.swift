@@ -38,81 +38,95 @@ final class ScreenshotTests: XCTestCase {
     }
 
     func testCaptureAllSections() throws {
-        launch(seed: true)
-
-        // Overview (default section)
-        XCTAssertTrue(app.staticTexts["Case Overview"].waitForExistence(timeout: 20))
-        capture("light-01-overview")
-
-        for section in ["Sources", "Evidence", "Findings", "Timeline", "Report"] {
-            let radio = app.radioButtons[section]
-            XCTAssertTrue(radio.waitForExistence(timeout: 15), "section \(section)")
-            radio.click()
-            _ = app.windows.firstMatch.waitForExistence(timeout: 5)
-            capture("light-\(section.lowercased())")
+        // Relaunch per section: the segmented picker is mirrored onto the Touch
+        // Bar on this hardware and synthetic clicks on it are unreliable (D-013).
+        let sections = ["overview", "sources", "evidence", "findings", "timeline", "report"]
+        for section in sections {
+            launch(seed: true, extraArguments: ["--ed-section", section])
+            XCTAssertTrue(waitForSectionContent(section),
+                          "section \(section) should render before capture")
+            capture("light-\(section)")
         }
     }
 
     func testCaptureDarkAppearance() throws {
-        // Drives the system appearance for this app instance only.
-        launch(seed: true, environment: ["EVIDENCE_DESK_APPEARANCE": "dark"])
-        XCTAssertTrue(app.staticTexts["Case Overview"].waitForExistence(timeout: 20))
+        launch(seed: true,
+               extraArguments: ["--ed-section", "overview"],
+               environment: ["EVIDENCE_DESK_APPEARANCE": "dark"])
+        XCTAssertTrue(heading("Case Overview", in: app).waitForExistence(timeout: 25))
         capture("dark-01-overview")
 
-        app.radioButtons["Findings"].click()
+        launch(seed: true,
+               extraArguments: ["--ed-section", "findings"],
+               environment: ["EVIDENCE_DESK_APPEARANCE": "dark"])
+        XCTAssertTrue(element(identifier: "findingRow.F-001", in: app).waitForExistence(timeout: 25))
         capture("dark-02-findings")
     }
 
     func testCaptureEmptyStates() throws {
+        // Empty library.
         launch(seed: false)
-        XCTAssertTrue(app.staticTexts["No Research Cases"].waitForExistence(timeout: 20))
+        assertEmptyState("No Research Cases", in: app, timeout: 25)
         capture("empty-01-library")
 
-        app.buttons["Show archived cases"].click()
-        XCTAssertTrue(app.staticTexts["No Archived Cases"].waitForExistence(timeout: 15))
+        // Archived library, entered through the app's QA launch state so the
+        // capture does not depend on clicking a Touch Bar–mirrored toggle.
+        launch(seed: false, extraArguments: ["--ed-show-archived"])
+        assertEmptyState("No Archived Cases", in: app, timeout: 25)
         capture("empty-02-archived")
 
-        app.buttons["Show active cases"].click()
-        let search = app.searchFields.firstMatch
-        XCTAssertTrue(search.waitForExistence(timeout: 10))
-        search.click()
-        search.typeText("nothing-matches-this")
-        XCTAssertTrue(app.staticTexts["No Matching Cases"].waitForExistence(timeout: 15))
+        // Search with no results, same rationale (typed input goes through the
+        // user's input method and is not reproducible).
+        launch(seed: true, extraArguments: ["--ed-search", "zzzz-no-such-case"])
+        assertEmptyState("No Matching Cases", in: app, timeout: 25)
         capture("empty-03-no-search-results")
     }
 
+    func testCapturePDFReader() throws {
+        launch(seed: true, extraArguments: ["--ed-section", "sources"])
+        let pdfRow = element(identifier: "sourceRow.S-003", in: app)
+        XCTAssertTrue(pdfRow.waitForExistence(timeout: 25))
+        pdfRow.click()
+        XCTAssertTrue(app.buttons["New Evidence from Selection"].firstMatch
+            .waitForExistence(timeout: 25), "PDF reader must load")
+        // Window screenshots capture the composited contents, including PDFKit.
+        capture("light-pdf-reader")
+    }
+
     func testCaptureMinimumWindowSize() throws {
-        launch(seed: true, environment: ["EVIDENCE_DESK_WINDOW_SIZE": "980x640"])
-        XCTAssertTrue(app.staticTexts["Case Overview"].waitForExistence(timeout: 20))
+        launch(seed: true,
+               extraArguments: ["--ed-section", "overview"],
+               environment: ["EVIDENCE_DESK_WINDOW_SIZE": "980x640"])
+        XCTAssertTrue(heading("Case Overview", in: app).waitForExistence(timeout: 25))
         capture("min-size-01-overview")
     }
 
-    func testCaptureSaveFailureAndErrorComponents() throws {
-        // Create a case, then verify the save-state component reports "Saved"
-        // only after a real write.
-        launch(seed: false)
-        XCTAssertTrue(app.buttons["New research case"].waitForExistence(timeout: 20))
-        app.buttons["New research case"].click()
-
+    func testCaptureSavedState() throws {
+        launch(seed: true, extraArguments: ["--ed-section", "overview"])
+        XCTAssertTrue(app.textFields["Title"].firstMatch.waitForExistence(timeout: 25))
+        // Editing marks the case dirty, then the debounced save settles.
         let title = app.textFields["Title"].firstMatch
-        XCTAssertTrue(title.waitForExistence(timeout: 10))
         title.click()
-        title.typeText("Save State Check")
-        app.buttons["Create Case"].firstMatch.click()
-
-        let editor = app.textFields["Title"].firstMatch
-        XCTAssertTrue(editor.waitForExistence(timeout: 15))
-        editor.click()
-        editor.typeText(" edited")
-        // Debounced save must settle into an explicit Saved state.
-        XCTAssertTrue(app.descendants(matching: .any)
-            .matching(identifier: "saveState.saved").firstMatch
-            .waitForExistence(timeout: 15), "save indicator must show Saved after a real write")
+        title.typeKey(.rightArrow, modifierFlags: [])
+        title.typeText(" ")
+        XCTAssertTrue(element(identifier: "saveState.saved", in: app).waitForExistence(timeout: 20),
+                      "the indicator must report Saved only after a real write")
         capture("state-01-saved")
     }
 
-    /// Captures only the app's own window, so evidence never includes the
-    /// surrounding desktop or other applications.
+    /// Confirms a section actually rendered its own content.
+    private func waitForSectionContent(_ section: String) -> Bool {
+        switch section {
+        case "overview": return heading("Case Overview", in: app).waitForExistence(timeout: 25)
+        case "sources": return element(identifier: "sourceRow.S-001", in: app).waitForExistence(timeout: 25)
+        case "evidence": return element(identifier: "evidenceRow.E-001", in: app).waitForExistence(timeout: 25)
+        case "findings": return element(identifier: "findingRow.F-001", in: app).waitForExistence(timeout: 25)
+        case "timeline": return element(identifier: "timelineRow.Tender announced", in: app).waitForExistence(timeout: 25)
+        case "report": return app.textViews.firstMatch.waitForExistence(timeout: 25)
+        default: return false
+        }
+    }
+
     private func capture(_ name: String) {
         let window = app.windows.firstMatch
         let screenshot = window.exists ? window.screenshot() : XCUIScreen.main.screenshot()

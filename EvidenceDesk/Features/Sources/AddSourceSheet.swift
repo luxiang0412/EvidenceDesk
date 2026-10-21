@@ -101,6 +101,7 @@ struct AddSourceSheet: View {
                 Text("Notes (optional)").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $notes)
                     .frame(height: 60)
+                    .accessibilityLabel("Source notes")
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.separator))
             }
             Text("This stores the link and the metadata you provide. Web page content is not fetched.")

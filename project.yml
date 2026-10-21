@@ -31,6 +31,7 @@ targets:
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSPrincipalClass: NSApplication
         NSHumanReadableCopyright: "Copyright © 2026."
+        CFBundleIconName: AppIcon
     entitlements:
       path: EvidenceDesk/EvidenceDesk.entitlements
       properties:
@@ -45,6 +46,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.luxiang0412.EvidenceDesk
         PRODUCT_NAME: EvidenceDesk
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: 
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
     scheme:

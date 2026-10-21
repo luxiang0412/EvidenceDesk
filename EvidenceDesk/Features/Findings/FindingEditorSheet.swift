@@ -31,6 +31,7 @@ struct FindingEditorSheet: View {
                 Text("Body / analysis").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $bodyText)
                     .font(DesignSystem.Typography.body)
+                    .accessibilityLabel("Finding body")
                     .frame(minHeight: 120)
                     .overlay(RoundedRectangle(cornerRadius: DesignSystem.Radius.small).strokeBorder(colors.separator))
             }
@@ -53,6 +54,7 @@ struct FindingEditorSheet: View {
                 Text("Uncertainty / open questions (optional)").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $uncertainty)
                     .frame(minHeight: 56)
+                    .accessibilityLabel("Uncertainty and open questions")
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
                 Text("\"Active\" means you are working with this finding — it does not claim the finding is proved.")
                     .font(DesignSystem.Typography.metadata)
@@ -100,7 +102,7 @@ struct FindingEditorSheet: View {
                 _ = try persistence.createFinding(in: researchCase, title: title, body: bodyText, status: status, uncertainty: uncertainty)
             }
             saveState = .saved
-            onDone()
+            Task { @MainActor in onDone() }
         } catch {
             saveState = .failed(error.localizedDescription)
             errorText = error.localizedDescription

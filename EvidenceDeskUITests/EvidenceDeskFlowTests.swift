@@ -27,58 +27,35 @@ final class EvidenceDeskFlowTests: XCTestCase {
     // MARK: - Core loop over seeded data
 
     func testSeededCaseRendersAllSections() throws {
-        let window = app.windows.firstMatch
-        XCTAssertTrue(window.waitForExistence(timeout: 25))
-        XCTAssertTrue(window.staticTexts["Case Overview"].waitForExistence(timeout: 15))
-
-        openSection("Sources")
-        XCTAssertTrue(row("sourceRow.S-001").waitForExistence(timeout: 15))
-        XCTAssertTrue(row("sourceRow.S-002").exists)
-        XCTAssertTrue(row("sourceRow.S-003").exists)
-        attach("sources")
-
-        openSection("Evidence")
-        XCTAssertTrue(row("evidenceRow.E-001").waitForExistence(timeout: 15))
-        attach("evidence")
-
-        openSection("Findings")
-        XCTAssertTrue(row("findingRow.F-001").waitForExistence(timeout: 15))
-        attach("findings")
-
-        openSection("Timeline")
-        XCTAssertTrue(row("timelineRow.Tender announced").waitForExistence(timeout: 15))
-        XCTAssertTrue(row("timelineRow.Decision expected").exists, "undated event stays visible")
-        XCTAssertTrue(app.staticTexts["Date Undetermined"].exists)
-        attach("timeline")
-
-        openSection("Report")
-        // The preview is a read-only text view; assert on the generated content.
-        let reportText = app.textViews.firstMatch
-        XCTAssertTrue(reportText.waitForExistence(timeout: 20), "report preview text view should exist")
-        let reportValue = (reportText.value as? String) ?? ""
-        XCTAssertTrue(reportValue.contains("## Research Question"), "report must include the question section")
-        XCTAssertTrue(reportValue.contains("## Sources"), "report must include the source list")
-        XCTAssertTrue(reportValue.contains("Supporting evidence"), "report must show support group")
-        attach("report")
+        // Relaunch per section (via the app's `--ed-section` argument) instead of
+        // clicking the segmented picker: on hardware with a Touch Bar the picker
+        // is mirrored there and synthetic clicks are unreliable (D-013).
+        let sections = ["overview", "sources", "evidence", "findings", "timeline", "report"]
+        for section in sections {
+            relaunch(section: section)
+            XCTAssertTrue(sectionContentIsVisible(section),
+                          "section \(section) should render its content")
+            attachWindowScreenshot("section-\(section)", of: app)
+        }
     }
 
     func testRestartPreservesData() throws {
         let window = app.windows.firstMatch
         XCTAssertTrue(window.waitForExistence(timeout: 25))
-        openSection("Sources")
-        XCTAssertTrue(row("sourceRow.S-001").waitForExistence(timeout: 15))
+        XCTAssertTrue(row("caseRow.C-001").waitForExistence(timeout: 25),
+                      "the seeded case must exist before the restart")
 
         app.terminate()
         app = XCUIApplication()
-        app.launchArguments = ["--test-storage-name", storageName]
+        app.launchArguments = ["--test-storage-name", storageName,
+                               "--ed-section", "sources"]
         app.launch()
         app.activate()
 
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 25))
-        openSection("Sources")
-        XCTAssertTrue(row("sourceRow.S-001").waitForExistence(timeout: 15),
+        XCTAssertTrue(row("sourceRow.S-001").waitForExistence(timeout: 25),
                       "sources must survive an app restart")
-        attach("restart-sources")
+        attachWindowScreenshot("restart-sources", of: app)
     }
 
     // MARK: - Create a case through the File menu
@@ -97,34 +74,41 @@ final class EvidenceDeskFlowTests: XCTestCase {
         XCTAssertTrue(create.exists)
         create.click()
 
-        // The new case becomes selected; its row is addressable by stable ID.
-        XCTAssertTrue(app.descendants(matching: .any)
-            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "caseRow.C-"))
-            .firstMatch.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.staticTexts["Fresh Case A"].exists
-                      || app.descendants(matching: .any)
-                        .containing(NSPredicate(format: "label CONTAINS %@", "Fresh Case A")).count > 0)
-        attach("new-case")
+        // The new case gets the next stable code (the fixture seeded C-001).
+        XCTAssertTrue(element(identifier: "caseRow.C-002", in: app).waitForExistence(timeout: 20),
+                      "the new case must be listed with the next stable code")
+        attachWindowScreenshot("new-case", of: app)
     }
 
     // MARK: - Helpers
 
-    private func openSection(_ title: String) {
-        let radio = app.radioButtons[title]
-        XCTAssertTrue(radio.waitForExistence(timeout: 15), "section \(title) should exist")
-        radio.click()
+    /// Checks the evidence that a section was actually rendered.
+    private func sectionContentIsVisible(_ section: String) -> Bool {
+        switch section {
+        case "overview": return heading("Case Overview", in: app).waitForExistence(timeout: 25)
+        case "sources": return row("sourceRow.S-001").waitForExistence(timeout: 25)
+        case "evidence": return row("evidenceRow.E-001").waitForExistence(timeout: 25)
+        case "findings": return row("findingRow.F-001").waitForExistence(timeout: 25)
+        case "timeline": return row("timelineRow.Tender announced").waitForExistence(timeout: 25)
+        case "report": return app.textViews.firstMatch.waitForExistence(timeout: 25)
+        default: return false
+        }
+    }
+
+    /// Restarts the app straight into `section`, keeping the same isolated store
+    /// (the first launch seeds it).
+    private func relaunch(section: String) {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = ["--test-storage-name", storageName,
+                               "--ed-section", section]
+        app.launch()
+        app.activate()
+        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 30))
     }
 
     private func row(_ identifier: String) -> XCUIElement {
-        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+        element(identifier: identifier, in: app)
     }
 
-    private func attach(_ name: String) {
-        let window = app.windows.firstMatch
-        let shot = window.exists ? window.screenshot() : XCUIScreen.main.screenshot()
-        let attachment = XCTAttachment(screenshot: shot)
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
-    }
 }

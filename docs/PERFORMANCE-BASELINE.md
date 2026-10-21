@@ -4,7 +4,7 @@
 
 | Item | Value |
 | --- | --- |
-| Mac | Apple M1, 16 GB RAM |
+| Mac | MacBook Air (Apple M1), 16 GB RAM |
 | OS | macOS 27.2 (26B5091g) |
 | Xcode | 27.1 (27A9275) |
 | Swift | 6.4 |
@@ -49,6 +49,40 @@ Raw log: `artifacts/P6/performance-baseline.txt`.
 - **PDF reader is created per selection** and torn down on `onDisappear`
   (`dismantleNSView` clears the delegate), avoiding retained document graphs.
 
+## Instruments (Time Profiler)
+
+Recorded with `xctrace` against a Debug build with the sandbox enabled:
+
+```bash
+xcrun xctrace record --template 'Time Profiler' --launch --time-limit 6s \
+  --output <trace> -- <App>/Contents/MacOS/EvidenceDesk \
+  --test-storage-name perf-trace2 --reset-test-storage --seed-demo
+```
+
+Workload: process launch → SwiftData store creation → synthetic case seeding
+(two attachment imports, one generated PDF) → first window render.
+
+Result: **612 samples over 6 s**. Busiest leaf frames:
+
+| Share | Frame |
+| --- | --- |
+| 4.2% | `objc_msgSend` |
+| 3.3% | `getMethodNoSuper_nolock` |
+| 2.9% | `<deduplicated_symbol>` |
+| 2.0% | `mach_msg2_trap` |
+| 1.3% | `_platform_memmove` |
+| 1.1% | Swift metadata cache lookup |
+| 1.0% | `AG::Graph::UpdateStack::update()` (SwiftUI layout) |
+
+No Evidence Desk business-logic frame appears among the top leaves: nothing on
+the launch path parses attachment bodies or generates reports synchronously.
+Summary saved as `artifacts/P6/instruments-summary.txt`; raw `.trace` bundles
+were deleted because they embed the recording process's environment variables.
+
+Limitations: the Allocations template in this Xcode exposes no exportable
+allocation table, so memory evidence is the RSS sampling below. Interactive
+workloads could not be driven during recording (see D-013).
+
 ## Manual checks performed
 
 - Launch with the seeded 3-source case, sampled RSS every 3 s for 18 s:
@@ -71,9 +105,8 @@ for i in 1 2 3 4 5 6; do sleep 3; ps -o rss= -p $! ; done
 
 ## Not measured here
 
-- Instruments traces (Time Profiler / Allocations) — blocked by the same
-  automation-permission limitation noted in `docs/DECISIONS.md` (D-006). The
-  command is recorded in `docs/FINAL-ACCEPTANCE-REPORT.md` so it can be run
-  interactively.
+- Interactive Instruments sessions (clicking through sections while recording):
+  synthetic clicks are unreliable on this hardware, see `docs/DECISIONS.md`
+  D-013. The launch/seed trace above is the recorded substitute.
 - Absolute frame timings on older hardware. The brief forbids promising
   cross-Mac millisecond targets; only this machine is characterised.

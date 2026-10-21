@@ -33,6 +33,7 @@ struct TimelineSectionView: View {
                         Label("New Event", systemImage: "plus")
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("timeline.newEvent")
                 }
 
                 if researchCase.timelineEvents.isEmpty {
@@ -123,6 +124,8 @@ struct TimelineEventRow: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Edit event")
+                .accessibilityLabel("Edit event")
+                .accessibilityIdentifier("timeline.edit")
             }
             if !event.detail.isEmpty {
                 Text(event.detail)

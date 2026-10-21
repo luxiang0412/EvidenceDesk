@@ -54,6 +54,7 @@ struct FindingDetailView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .accessibilityIdentifier("finding.linkEvidence")
                 }
 
                 linkedGroups
@@ -64,10 +65,13 @@ struct FindingDetailView: View {
 
                 HStack {
                     Button("Edit…", action: onEdit)
+                        .accessibilityIdentifier("finding.edit")
                     Spacer()
                     Button(role: .destructive) { confirmDelete = true } label: {
                         Label("Delete Finding", systemImage: "trash")
                     }
+                    .accessibilityLabel("Delete Finding")
+                    .accessibilityIdentifier("finding.delete")
                 }
             }
             .padding(DesignSystem.Spacing.xl)
@@ -97,20 +101,22 @@ struct FindingDetailView: View {
 
     private var header: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: finding.status == .active ? "circle.circle.fill" : finding.status == .draft ? "pencil" : "arrow.uturn.backward")
-                .font(.system(size: 26))
-                .foregroundStyle(finding.status == .active ? colors.accent : .secondary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(finding.shortCode)
-                    .font(DesignSystem.Typography.pageTitle)
-                Text(finding.status.displayName)
-                    .font(DesignSystem.Typography.metadata)
-                    .foregroundStyle(colors.secondaryText)
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: finding.status == .active ? "circle.circle.fill" : finding.status == .draft ? "pencil" : "arrow.uturn.backward")
+                    .font(.system(size: 26))
+                    .foregroundStyle(finding.status == .active ? colors.accent : .secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(finding.shortCode)
+                        .font(DesignSystem.Typography.pageTitle)
+                    Text(finding.status.displayName)
+                        .font(DesignSystem.Typography.metadata)
+                        .foregroundStyle(colors.secondaryText)
+                }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(finding.shortCode), \(finding.status.displayName)")
             Spacer()
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(finding.shortCode), \(finding.status.displayName)")
     }
 
     @ViewBuilder

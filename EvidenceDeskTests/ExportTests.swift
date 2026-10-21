@@ -241,3 +241,94 @@ struct ExportFailureTests {
         #expect(threw, "an unwritable store must throw so the app can show FatalErrorView")
     }
 }
+
+/// The UI's own export path (`ReportExporter`) writing real files, so the
+/// artefact verified here is the artefact the app produces.
+@MainActor
+struct ReportExporterPathTests {
+    private func workspace() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("EvidenceDesk-UIExport-\(UUID().uuidString)", isDirectory: true)
+    }
+
+    @Test func exportMarkdownWritesTheSameContentAsTheGenerator() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let researchCase = try persistence.createCase(title: "UI export", researchQuestion: "Q?")
+        let source = try persistence.createURLSource(in: researchCase,
+                                                     url: URL(string: "https://example.gov/a")!,
+                                                     title: "Notice")
+        _ = try persistence.createEvidence(in: researchCase, text: "14 days", type: .fact,
+                                           source: source, locationNote: "p. 1", pageNumber: 1,
+                                           userNotes: "")
+
+        let dir = workspace()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        let url = dir.appendingPathComponent(ReportExporter.markdownFilename(for: researchCase))
+        try ReportExporter.exportMarkdown(for: researchCase, to: url)
+
+        #expect(FileManager.default.fileExists(atPath: url.path))
+        #expect(url.lastPathComponent == "C-001-report.md")
+        let written = try String(contentsOf: url, encoding: .utf8)
+        let expected = MarkdownReportExporter.generate(ReportPayloadBuilder.build(for: researchCase))
+        // Content, ignoring the per-call generated timestamp line.
+        let stripDate: (String) -> [String] = { text in
+            text.components(separatedBy: "\n").filter { !$0.hasPrefix("Case C-001 · Generated") }
+        }
+        #expect(stripDate(written) == stripDate(expected))
+        #expect(written.contains("## Sources"))
+        #expect(written.contains("S-001"))
+    }
+
+    @Test func exportBundleCreatesPortableLayout() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let researchCase = try persistence.createCase(title: "Bundle case")
+        let dir = workspace()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        let file = dir.appendingPathComponent("notes.md")
+        try Data("# note".utf8).write(to: file)
+        _ = try persistence.importFileSource(in: researchCase, sourceURL: file,
+                                             sourceType: .text, title: "Notes")
+
+        let parent = dir.appendingPathComponent("output", isDirectory: true)
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        let bundle = try ReportExporter.exportBundle(for: researchCase,
+                                                     into: parent,
+                                                     attachments: persistence.attachments)
+
+        #expect(bundle.lastPathComponent == "C-001-export")
+        #expect(FileManager.default.fileExists(atPath: bundle.appendingPathComponent("manifest.json").path))
+        #expect(FileManager.default.fileExists(atPath: bundle.appendingPathComponent("report.md").path))
+        let attachmentsDir = bundle.appendingPathComponent("attachments", isDirectory: true)
+        let children = try FileManager.default.contentsOfDirectory(atPath: attachmentsDir.path)
+        #expect(children == ["S-001"])
+        // Manifest references resolve inside the bundle.
+        let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
+        let manifest = try decoder.decode(ExportManifest.self,
+                                          from: Data(contentsOf: bundle.appendingPathComponent("manifest.json")))
+        for entry in manifest.attachments {
+            #expect(FileManager.default.fileExists(
+                atPath: bundle.appendingPathComponent(entry.relativePath).path))
+            #expect(!entry.relativePath.hasPrefix("/"))
+        }
+    }
+
+    @Test func exportMarkdownIntoUnwritableFolderFails() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let researchCase = try persistence.createCase(title: "RO")
+        let dir = workspace()
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path)
+            try? FileManager.default.removeItem(at: dir)
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: dir.path)
+        let url = dir.appendingPathComponent("report.md")
+        var threw = false
+        do { try ReportExporter.exportMarkdown(for: researchCase, to: url) } catch { threw = true }
+        #expect(threw, "a read-only destination must surface an error")
+    }
+}

@@ -47,12 +47,15 @@ struct ReportPreviewView: View {
                         .foregroundStyle(colors.secondaryText)
                 }
                 Button("Regenerate", action: regenerate)
+                    .accessibilityIdentifier("report.regenerate")
                 Button {
                     exportMarkdown()
                 } label: {
                     Label("Export as Markdown…", systemImage: "doc")
                 }
                 .disabled(generatedMarkdown.isEmpty || exportState == .exporting)
+                .accessibilityLabel("Export as Markdown")
+                .accessibilityIdentifier("report.exportMarkdown")
 
                 Button {
                     exportCaseBundle()
@@ -60,6 +63,8 @@ struct ReportPreviewView: View {
                     Label("Export Case Bundle…", systemImage: "folder")
                 }
                 .disabled(exportState == .exporting)
+                .accessibilityLabel("Export Case Bundle")
+                .accessibilityIdentifier("report.exportBundle")
             }
         }
         .onReceive(AppActions.shared.publisher()) { action in
@@ -119,15 +124,13 @@ struct ReportPreviewView: View {
     }
 
     private func exportMarkdown() {
-        let payload = ReportPayloadBuilder.build(for: researchCase)
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.plainText, .text]
-        panel.nameFieldStringValue = "\(researchCase.shortCode)-report.md"
+        panel.nameFieldStringValue = ReportExporter.markdownFilename(for: researchCase)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         exportState = .exporting
         do {
-            let markdown = MarkdownReportExporter.generate(payload)
-            try markdown.write(to: url, atomically: true, encoding: .utf8)
+            try ReportExporter.exportMarkdown(for: researchCase, to: url)
             exportState = .success(url.lastPathComponent)
         } catch {
             exportState = .failed(error.localizedDescription)
@@ -138,17 +141,11 @@ struct ReportPreviewView: View {
         guard let persistence,
               let dir = FileSelectionHelper.openDirectory(title: "Choose export folder",
                                                           prompt: "Export case bundle here") else { return }
-        let target: URL
-        if dir.lastPathComponent == researchCase.shortCode {
-            target = dir
-        } else {
-            target = dir.appendingPathComponent("\(researchCase.shortCode)-export", isDirectory: true)
-        }
-
-        let exporter = CaseArchiveExporter(attachments: persistence.attachments)
         exportState = .exporting
         do {
-            _ = try exporter.exportCase(researchCase, to: target)
+            let target = try ReportExporter.exportBundle(for: researchCase,
+                                                         into: dir,
+                                                         attachments: persistence.attachments)
             exportState = .success(target.lastPathComponent)
         } catch {
             exportState = .failed(error.localizedDescription)

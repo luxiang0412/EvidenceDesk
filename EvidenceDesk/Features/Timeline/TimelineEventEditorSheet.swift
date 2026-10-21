@@ -33,6 +33,7 @@ struct TimelineEventEditorSheet: View {
                 Text("Description").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $detail)
                     .frame(minHeight: 60)
+                    .accessibilityLabel("Event description")
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
             }
 
@@ -71,6 +72,7 @@ struct TimelineEventEditorSheet: View {
                 Text("Notes (optional)").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $notes)
                     .frame(minHeight: 48)
+                    .accessibilityLabel("Event notes")
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
             }
 
@@ -134,7 +136,7 @@ struct TimelineEventEditorSheet: View {
                                                         source: chosenSource,
                                                         notes: notes)
             }
-            onDone()
+            Task { @MainActor in onDone() }
         } catch {
             errorText = error.localizedDescription
         }

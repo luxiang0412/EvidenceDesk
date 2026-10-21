@@ -5,7 +5,7 @@ are real captures of the running app — no mockups.
 
 ## Evidence sources
 
-1. **Primary — `artifacts/Screenshots/Sandboxed/`**
+1. **Primary — `artifacts/Screenshots/Sandboxed/` (mirrored in `artifacts/P1/`)**
    Window-only screenshots attached by `EvidenceDeskUITests/ScreenshotTests`
    while the **sandboxed** app is running. Because only
    `XCUIElement.screenshot()` of the app window is used, no desktop, terminal or
@@ -13,11 +13,12 @@ are real captures of the running app — no mockups.
 
    | File | Screen |
    | --- | --- |
-   | `light-01-overview.png` | Case overview, populated |
+   | `light-overview.png` | Case overview, populated |
    | `light-sources.png` | Sources list + detail |
    | `light-evidence.png` | Evidence list + detail |
    | `light-findings.png` | Findings |
    | `light-timeline.png` | Timeline (incl. undated section) |
+   | `light-pdf-reader.png` | PDF reader with PDFKit page content |
    | `light-report.png` | Report preview (Markdown source) |
    | `dark-01-overview.png` | Overview, dark appearance |
    | `dark-02-findings.png` | Findings, dark appearance |
@@ -30,18 +31,19 @@ are real captures of the running app — no mockups.
 2. **`artifacts/Screenshots/UITests/`** — functional UI-suite screenshots
    (`ui-*.png`), also window-only.
 
-3. **`artifacts/Screenshots/P1/`** — earlier in-app renders incl. the PDFKit
-   page export (`final-pdf-reader-light.png.pdfpage.png`), retained because the
-   window capturer cannot draw the PDFKit canvas.
+3. **PDFKit page render** — window snapshots cannot draw PDFKit canvases, so a
+   page was exported through PDFKit during an earlier capture pass. The reader
+   itself is asserted structurally by
+   `EvidenceDeskUITests/testPDFReaderOffersSelectionActionOnlyWhenTextIsSelected`.
 
 ## Requirement → evidence
 
 | Requirement | Evidence | How verified |
 | --- | --- | --- |
 | Main window, initial empty state | `Sandboxed/empty-01-library.png` | OCR: "No Research Cases", "Create a case to begin a research project.", "New Research Case" |
-| Case overview, populated | `Sandboxed/light-01-overview.png` | OCR: case title, research question, scope, "Saved", stats 3 Sources / 4 Evidence / 1 Finding / 3 Timeline |
+| Case overview, populated | `Sandboxed/light-overview.png` | OCR: case title, research question, scope, "Saved", stats 3 Sources / 4 Evidence / 1 Finding / 3 Timeline |
 | Source list (URL / text / PDF) | `Sandboxed/light-sources.png` | OCR: `S-001 City announces transit tender…`, `S-002 … tender-notes.md`, `S-003 … line7-spec.pdf` |
-| PDF reading + page fidelity | `P1/final-pdf-reader-light.png` + `.pdfpage.png` | Window capture shows list + reader chrome; the page itself is rendered through PDFKit (OCR: "14 days", "30-day window", "30-day") |
+| PDF reading + page fidelity | PDFKit page render (pre-sandbox capture, kept because window snapshots cannot draw PDFKit canvases); reader chrome asserted by `testPDFReaderOffersSelectionActionOnlyWhenTextIsSelected` | Window capture shows list + reader chrome; the page itself is rendered through PDFKit (OCR: "14 days", "30-day window", "30-day") |
 | Evidence detail | `Sandboxed/light-evidence.png` | OCR: `E-001 Fact`, source ref, excerpt text |
 | Findings with typed evidence | `Sandboxed/light-findings.png` | OCR: `F-001`, `Active`, body text |
 | Timeline incl. undated | `Sandboxed/light-timeline.png` | OCR: dates + "Date unknown" |
@@ -74,8 +76,9 @@ are real captures of the running app — no mockups.
 
 ## Known capture caveats
 
-- PDFKit page content is not drawn by AppKit window snapshots; the page is
-  exported separately through PDFKit (`*.pdfpage.png`).
+- `--screenshot` (in-app `cacheDisplay`) does not draw PDFKit canvases, which is
+  why final evidence uses XCUITest **window** screenshots: those are composited
+  and include the PDF page (OCR reads the fixture text).
 - Appearance and window size during screenshots are driven by
   `EVIDENCE_DESK_APPEARANCE` and `EVIDENCE_DESK_WINDOW_SIZE` environment
   variables (see `docs/DECISIONS.md` D-012).

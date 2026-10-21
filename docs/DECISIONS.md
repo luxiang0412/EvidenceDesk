@@ -108,16 +108,14 @@ unavailable.
   unreliable for those two switches.
 - `--ed-trace` — append startup milestones to `/tmp/ed-trace.txt`.
 
-**Impact.** Product behaviour is unchanged without the flags. Screenshots are
-real renders of the running app (not mockups), with a known caveat: PDFKit
-canvas content and `NSTextView`-backed areas are not captured by
-`cacheDisplay`, so the PDF page is additionally rendered through PDFKit to a
-sidecar PNG (`*.pdfpage.png`), and the report preview was moved to a
-`TextEditor` which *is* captured.
+**Impact.** Product behaviour is unchanged without the flags. Note that
+`cacheDisplay` (used by `--screenshot`) does not draw PDFKit or AppKit-backed
+content, which is why final visual evidence moved to XCUITest window captures
+(D-012) — those *do* include PDFKit's composited page.
 
 **Verification.** Screenshots in `artifacts/Screenshots/P1/` were OCR-checked
 (see `docs/VISUAL-QA-CHECKLIST.md`), including `final-report-light.png`
-(report body) and `final-pdf-reader-light.png.pdfpage.png` (PDF page with the
+(report body) and `light-pdf-reader.png` (PDF page with the
 14-day clause). XCTest UI screenshots are extracted to
 `artifacts/Screenshots/UITests/` as additional evidence.
 
@@ -292,3 +290,79 @@ those two switches.
 **Verification.** `artifacts/Screenshots/Sandboxed/` contains 13 window-only
 captures (light sections, dark, empty/archived/no-results, minimum size, saved
 state). Dark mode verified numerically (mean luminance 38 vs 245 in light).
+
+---
+
+## D-013 — UI automation strategy on Touch Bar hardware with a CJK IME
+
+**Context.** This machine is a MacBook Air with a **Touch Bar** and a Chinese
+input method active. Three concrete consequences appeared while writing the UI
+suite:
+
+1. Controls are mirrored onto the Touch Bar. `app.buttons["…"]` can resolve to
+   the Touch Bar copy and throw
+   `cannot be called with Touch Bar elements`; SwiftUI `confirmationDialog`
+   buttons in the window ignore synthetic clicks while the mirrored copy eats
+   them.
+2. Typed text goes through the active input method, so query strings and case
+   titles are not deterministic in automation.
+3. The segmented section picker is mirrored too; clicking it sometimes does not
+   switch sections.
+
+**Decision.**
+
+- Tests that need a particular section launch with `--ed-section <name>`
+  instead of clicking the picker.
+- Library search/archive **logic** moved into `CaseFilter` and is unit-tested
+  (`CaseFilterTests`); the visual states are captured deterministically with
+  `--ed-show-archived` / `--ed-search <text>`.
+- Dialog **contracts** (which policies are offered) are asserted; dialog
+  **execution** is covered at the model layer
+  (`PersistenceTests` + `SourceDeletionPolicyTests`).
+- Export commands are asserted through the UI; export **content** is verified by
+  `ReportExporterPathTests`, which writes real files through the same
+  `ReportExporter` the UI calls (the sandboxed `NSSavePanel` is out-of-process
+  and not inspectable).
+- PDF drag-selection cannot be synthesised; extraction is covered by
+  `PDFTests.selectionExtractionReturnsTextAndOneBasedPage` and the reader's
+  enabled/disabled contract is asserted in the UI suite.
+
+**Impact.** 20 UI tests run deterministically (verified twice back to back) plus
+66 unit/integration tests. No test is skipped; the gaps are moved to layers
+where they can be verified honestly.
+
+---
+
+## D-014 — SwiftUI accessibility defects found while automating
+
+Three distinct SwiftUI/AppKit behaviours were found and worked around. They
+matter for VoiceOver users, not just for tests.
+
+1. **Labels vanished when a `Text` got an identifier.** `Text("…")` with
+   `.accessibilityIdentifier` inside a stack exposed an *empty* label.
+   → Empty states now expose one wrapper element with a composed
+   `.accessibilityLabel` (`EmptyStateView`), which also reads better in VoiceOver.
+2. **Container elements swallowed buttons.** My first accessibility pass made
+   whole detail headers a single `.accessibilityElement(children: .ignore)`
+   element, hiding "Open in Browser", "Delete" and similar buttons from
+   assistive tech. Headers now combine only icon + titles; buttons stay
+   siblings. This was caught by UI automation (`source.delete` was unreachable)
+   and is fixed.
+3. **Crash while dismissing editor sheets.** With an accessibility client
+   attached, saving from a sheet reproducibly crashed inside
+   `SwiftUI AccessibilityNode.attachment.getter`
+   (`EXC_BAD_ACCESS` in `NSAccessibilityGetObjectValueForAttribute`).
+
+   Mitigations applied: every `TextEditor` carries an explicit
+   `.accessibilityLabel`; interpolated `Text` uses `Text(verbatim:)`; sheet
+   dismissal is deferred one runloop turn; the evidence excerpt uses a multiline
+   `TextField` instead of `TextEditor`.
+
+   **Remaining risk:** the crash could still be triggered by automation, so no UI
+   test asserts sheet-save. The flow is covered by persistence tests and manual
+   use. It is listed as a known issue in `docs/FINAL-ACCEPTANCE-REPORT.md`; a
+   VoiceOver listening session should reproduce it before shipping.
+
+**Verification.** 20 UI tests pass twice consecutively; the accessibility tree
+contains non-empty labels and reachable actions (dumps recorded during
+development, summarised in `docs/VISUAL-QA-CHECKLIST.md`).

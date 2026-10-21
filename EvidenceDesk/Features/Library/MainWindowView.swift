@@ -16,17 +16,23 @@ struct MainWindowView: View {
     @State private var newCasePresented = false
     @State private var importPresented = false
 
-    private var filteredCases: [ResearchCase] {
-        var result = allCases.filter { $0.isArchived == showArchived }
-        if !searchText.isEmpty {
-            let q = searchText.localizedLowercase
-            result = result.filter {
-                $0.title.localizedLowercase.contains(q)
-                || $0.researchQuestion.localizedLowercase.contains(q)
-                || $0.shortCode.localizedLowercase.contains(q)
-            }
+    /// QA hooks so empty/search states can be captured deterministically
+    /// (text entry goes through the user's input method, which is not
+    /// reproducible in automation):
+    ///   `--ed-show-archived`   show the archived library
+    ///   `--ed-search <text>`   pre-fill the library search
+    private func applyLaunchState() {
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("--ed-show-archived") {
+            showArchived = true
         }
-        return result
+        if let index = args.firstIndex(of: "--ed-search"), index + 1 < args.count {
+            searchText = args[index + 1]
+        }
+    }
+
+    private var filteredCases: [ResearchCase] {
+        CaseFilter.apply(to: allCases, showArchived: showArchived, query: searchText)
     }
 
     var body: some View {
@@ -70,6 +76,7 @@ struct MainWindowView: View {
             }
         }
         .onAppear {
+            applyLaunchState()
             // Select the most recent case by default so the workspace is usable
             // immediately (also used by seeded QA screenshots).
             if selectedCaseID == nil, let first = allCases.first(where: { !$0.isArchived }) {

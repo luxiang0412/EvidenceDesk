@@ -40,8 +40,10 @@ First complete release of the local-first research workspace.
 
 ### Quality
 
-- 58 Swift Testing tests (unit + integration) and 16 XCTest UI tests
-  (11 functional flows + 5 screenshot/state captures).
+- 66 Swift Testing tests (unit + integration) and 20 XCTest UI tests
+  (14 behavioural flows + 6 screenshot/state captures).
+- App icon (asset catalog) generated from `scripts/generate-app-icon.swift`.
+- `CaseFilter` extracted for testable library search/archive behaviour.
 - `scripts/verify-all.sh` runs environment → generate → build → unit tests →
   UI tests.
 - Performance baseline recorded (500 sources, 200 evidence/link rows, 100 MB
@@ -51,6 +53,8 @@ First complete release of the local-first research workspace.
 
 - Web page content is not fetched or archived; link sources are labelled as
   such.
+- SwiftUI can crash when dismissing editor sheets while an accessibility client
+  is attached (mitigated; see `docs/DECISIONS.md` D-014).
 - No cloud sync, accounts, AI features or telemetry.
 - Builds are ad-hoc signed for local development; not notarised and not
   distributed.

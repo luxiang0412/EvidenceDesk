@@ -82,10 +82,13 @@ struct EvidenceDetailView: View {
 
                 HStack {
                     Button("Edit…", action: onEdit)
+                        .accessibilityIdentifier("evidence.edit")
                     Spacer()
                     Button(role: .destructive) { confirmDelete = true } label: {
                         Label("Delete Evidence", systemImage: "trash")
                     }
+                    .accessibilityLabel("Delete Evidence")
+                    .accessibilityIdentifier("evidence.delete")
                 }
             }
             .padding(DesignSystem.Spacing.xl)
@@ -106,20 +109,22 @@ struct EvidenceDetailView: View {
 
     private var header: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: evidence.evidenceType.systemImage)
-                .font(.system(size: 26))
-                .foregroundStyle(color(for: evidence.evidenceType))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(evidence.shortCode)
-                    .font(DesignSystem.Typography.pageTitle)
-                Text(evidence.evidenceType.displayName)
-                    .font(DesignSystem.Typography.metadata)
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: evidence.evidenceType.systemImage)
+                    .font(.system(size: 26))
                     .foregroundStyle(color(for: evidence.evidenceType))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(evidence.shortCode)
+                        .font(DesignSystem.Typography.pageTitle)
+                    Text(evidence.evidenceType.displayName)
+                        .font(DesignSystem.Typography.metadata)
+                        .foregroundStyle(color(for: evidence.evidenceType))
+                }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(evidence.shortCode), \(evidence.evidenceType.displayName)")
             Spacer()
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(evidence.shortCode), \(evidence.evidenceType.displayName)")
     }
 
     private func color(for type: EvidenceType) -> Color {

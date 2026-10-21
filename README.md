@@ -20,7 +20,9 @@ Real renders of the running app (captured via the app's own QA renderer; see
 | Screen | File |
 | --- | --- |
 | Empty library | `artifacts/Screenshots/Sandboxed/empty-01-library.png` |
-| Case overview | `artifacts/Screenshots/Sandboxed/light-01-overview.png` |
+| Archived empty state | `artifacts/Screenshots/Sandboxed/empty-02-archived.png` |
+| Search, no results | `artifacts/Screenshots/Sandboxed/empty-03-no-search-results.png` |
+| Case overview | `artifacts/Screenshots/Sandboxed/light-overview.png` |
 | Sources | `artifacts/Screenshots/Sandboxed/light-sources.png` |
 | Evidence | `artifacts/Screenshots/Sandboxed/light-evidence.png` |
 | Findings | `artifacts/Screenshots/Sandboxed/light-findings.png` |
@@ -28,7 +30,7 @@ Real renders of the running app (captured via the app's own QA renderer; see
 | Report preview | `artifacts/Screenshots/Sandboxed/light-report.png` |
 | Dark appearance | `artifacts/Screenshots/Sandboxed/dark-01-overview.png` |
 | Minimum window (980×640) | `artifacts/Screenshots/Sandboxed/min-size-01-overview.png` |
-| PDF reader page (PDFKit render) | `artifacts/Screenshots/P1/final-pdf-reader-light.png.pdfpage.png` |
+| PDF reader page (PDFKit render) | `artifacts/Screenshots/Sandboxed/light-pdf-reader.png` |
 
 `artifacts/` is gitignored. Regenerate the screenshots with:
 
@@ -86,8 +88,8 @@ open artifacts/DerivedData/Build/Products/Debug/EvidenceDesk.app
 ## Test
 
 ```bash
-./scripts/test.sh      # Swift Testing: unit + integration (58 tests)
-./scripts/ui-test.sh   # XCTest UI automation + screenshots (16 tests)
+./scripts/test.sh      # Swift Testing: unit + integration (66 tests)
+./scripts/ui-test.sh   # XCTest UI automation + screenshots (20 tests)
 ./scripts/verify-all.sh  # env → generate → build → unit tests → UI tests
 SKIP_UI_TESTS=1 ./scripts/verify-all.sh   # if UI automation is unavailable
 ./scripts/perf-baseline.sh                # scale/perf baseline → artifacts/P6
@@ -137,9 +139,11 @@ screen.
   undo for database deletions (system Undo applies to text editing only).
 - The app is not notarised. Debug builds are ad-hoc signed and are **not**
   distributable. See `docs/RELEASE.md`.
-- UI screenshots captured through the app's renderer do not include PDFKit
-  canvas pixels; the PDF page is exported separately via PDFKit
-  (`*.pdfpage.png`).
+- Under an accessibility client (VoiceOver, UI automation), SwiftUI can crash
+  while an editor sheet is dismissed. Mitigations are in place, but reproduce it
+  in a VoiceOver session before shipping — see `docs/DECISIONS.md` D-014.
+- Final screenshots come from XCUITest window captures (sandboxed app, window
+  only); they include PDFKit's page content.
 
 ## Documentation
 

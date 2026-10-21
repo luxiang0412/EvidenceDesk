@@ -37,11 +37,22 @@ struct EvidenceEditorSheet: View {
 
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                 Text("Excerpt / text *").font(DesignSystem.Typography.secondary)
-                TextEditor(text: $text)
+                // Multiline TextField rather than TextEditor: the NSTextView
+                // backing TextEditor made SwiftUI crash while resolving
+                // accessibility labels on sheet dismissal (D-014).
+                TextField("Paste or type the excerpt", text: $text, axis: .vertical)
+                    .textFieldStyle(.plain)
                     .font(DesignSystem.Typography.body)
-                    .frame(minHeight: 110)
+                    .lineLimit(5...12)
+                    .padding(DesignSystem.Spacing.sm)
+                    .accessibilityLabel("Excerpt text")
+                    .accessibilityIdentifier("evidence.excerpt")
+                    .frame(minHeight: 110, alignment: .topLeading)
                     .overlay(RoundedRectangle(cornerRadius: DesignSystem.Radius.small).strokeBorder(colors.separator))
-                Text("\(text.count) of 50,000 characters")
+                // `Text(verbatim:)` avoids SwiftUI building an
+                // AccessibilityAttachment for interpolated content, which
+                // crashed label resolution when the sheet dismissed (D-014).
+                Text(verbatim: "\(text.count) of 50,000 characters")
                     .font(DesignSystem.Typography.metadata)
                     .foregroundStyle(colors.secondaryText)
             }
@@ -102,6 +113,7 @@ struct EvidenceEditorSheet: View {
                 Text("Your notes (optional)").font(DesignSystem.Typography.secondary)
                 TextEditor(text: $userNotes)
                     .frame(minHeight: 60)
+                    .accessibilityLabel("Your notes")
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(colors.separator))
             }
 
@@ -178,7 +190,11 @@ struct EvidenceEditorSheet: View {
                                                    caseIsRequired: !noSourceToggle)
             }
             saveState = .saved
-            onDone()
+            // Dismiss on the next runloop turn: tearing the sheet down in the
+            // same update that mutates the SwiftData graph made SwiftUI resolve
+            // accessibility labels for a half-removed tree and crash inside
+            // AccessibilityNode.attachment (see docs/DECISIONS.md D-014).
+            Task { @MainActor in onDone() }
         } catch {
             saveState = .failed(error.localizedDescription)
             errorText = error.localizedDescription

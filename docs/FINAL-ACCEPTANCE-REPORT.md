@@ -13,7 +13,7 @@ executed.
 | --- | --- | --- |
 | Create, edit, search, archive cases | PASS | `CaseOverviewView`, `LibrarySidebarView`, `PersistenceTests`, `UITests/testCreateCaseEndToEnd` |
 | Import URL / PDF / TXT / MD sources | PASS | `ImportService`, `PersistenceService.importFileSource`, `FileValidationTests`, `UITests/testSeededCaseRendersAllSections` |
-| PDF reading, selection, evidence creation | PASS | `PDFReaderView` (PDFKit), `PDFSelectionService`, `PDFTests`, `final-pdf-reader-light.png.pdfpage.png` |
+| PDF reading, selection, evidence creation | PASS | `PDFReaderView` (PDFKit), `PDFSelectionService`, `PDFTests`, `light-pdf-reader.png` |
 | Findings link supports / contradicts / background evidence | PASS | `FindingEvidenceLink`, `FindingDetailView`, `PersistenceTests.findingSupportsMultipleLinkedEvidence` |
 | Timeline | PASS | `TimelineSectionView`, `TimelineSorting`, `PersistenceTests.timelineEventsSortByDateWithUndatedSecluded` |
 | Markdown report + portable case bundle export | PASS | `MarkdownReportExporter`, `CaseArchiveExporter`, `ExportTests` (incl. manifest schemaVersion + relative paths) |
@@ -27,7 +27,7 @@ executed.
 | Empty / error / loading states | PASS | `UITests/testEmptyStateOffersFirstAction`, `testSearchNoResultState`, `testArchivedEmptyStateIsNotDeletion`; `ErrorBannerView`; `StartupView` progress state |
 | Keyboard navigation and shortcuts | PASS | `AppCommands`; `UITests/testMenuCommandsExistAndInspectorToggles`, `testEditMenuIsStandard` |
 | VoiceOver labels for controls | PASS (with one manual caveat, §9) | Explicit labels/identifiers on rows, statuses, save state, errors; verified via accessibility-tree dumps |
-| Real running screenshots for core flows | PASS | `artifacts/Screenshots/Sandboxed/` (window-only, sandboxed app) |
+| Real running screenshots for core flows | PASS | `artifacts/Screenshots/Sandboxed/` (13 window-only captures, sandboxed app) |
 
 ## 2. Toolchain and test machine
 
@@ -51,8 +51,8 @@ Recorded at `artifacts/P0/environment.txt`; summary in `docs/ENVIRONMENT.md`.
 | `./scripts/env.sh` | 0 | Environment captured |
 | `./scripts/generate-project.sh` | 0 | `EvidenceDesk.xcodeproj` generated |
 | `./scripts/build.sh` | 0 | `** BUILD SUCCEEDED **` (Debug, macOS 15.0 target) |
-| `./scripts/test.sh` | 0 | `Test run with 58 tests in 13 suites passed` |
-| `./scripts/ui-test.sh` | 0 | `Executed 16 tests, with 0 failures` |
+| `./scripts/test.sh` | 0 | `Test run with 66 tests in 16 suites passed` |
+| `./scripts/ui-test.sh` | 0 | `Executed 20 tests, with 0 failures` (run twice) |
 | `./scripts/verify-all.sh` | 0 | environment PASS → generate PASS → build PASS → tests PASS → ui-tests PASS |
 | `./scripts/perf-baseline.sh` | 0 | Scale tests passed; baseline recorded |
 | `git clone` → `./scripts/build.sh` → `./scripts/test.sh` in `/tmp/ed-clean` | 0 | Clean checkout builds and the full test suite passes |
@@ -63,23 +63,26 @@ Logs: `artifacts/P0/*.log`, `artifacts/verify-*/`, `artifacts/TestResults/`.
 
 | Suite | Count | Result |
 | --- | --- | --- |
-| Swift Testing (unit + integration) | 58 tests / 13 suites | 58 passed, 0 failed, 0 skipped |
-| XCTest UI automation | 16 tests / 4 classes | 16 passed, 0 failed |
-| — functional flows | 11 | passed |
-| — screenshot/state captures | 5 | passed |
+| Swift Testing (unit + integration) | 66 tests / 16 suites | 66 passed, 0 failed, 0 skipped |
+| XCTest UI automation | 20 tests / 5 classes | 20 passed, 0 failed (verified twice consecutively) |
+| — launch & empty states | 2 | passed |
+| — library/flow behaviour | 3 | passed |
+| — menus, inspector, validation | 4 | passed |
+| — evidence/PDF/delete/export contracts | 5 | passed |
+| — screenshot/state captures | 6 | passed |
 
-Note: `SmokeTests` (3 of the 58) overlaps `URLValidationTests` and
+Note: `SmokeTests` (3 of the 66) overlaps `URLValidationTests` and
 `ShortCodeTests` from the P0 bootstrap. They were retained deliberately rather
 than deleted once the fuller suites landed; they still pass.
 
 Breakdown by area:
 
-- URL validation (4), file validation (4), short codes (3)
-- Persistence model/relations/deletion (19)
-- Restart persistence (2), recovery (3)
+- URL validation (4), file validation (4), short codes (3), library filtering (4)
+- Persistence model/relations/deletion (20), restart persistence (2), recovery (3)
 - Attachments + read-only failure (5), PDF (3)
-- Export/report (8), export failure paths incl. unopenable store (2)
-- Performance/scale (3)
+- Export/report (8), export path through the UI's own service (3),
+  export failure paths incl. unopenable store (2)
+- Source deletion policy (1), performance/scale (3)
 
 ## 5. Visual acceptance
 
@@ -101,7 +104,7 @@ app window only (no desktop, terminal or other apps in frame).
 | Dark appearance | `.../dark-01-overview.png`, `.../dark-02-findings.png` |
 | Minimum window 980×640 | `.../min-size-01-overview.png` |
 | Save indicator after a real write | `.../state-01-saved.png` |
-| PDF page (PDFKit render) | `artifacts/Screenshots/P1/final-pdf-reader-light.png.pdfpage.png` |
+| PDF page (PDFKit render) | `artifacts/Screenshots/Sandboxed/light-pdf-reader.png` |
 | Functional-flow captures | `artifacts/Screenshots/UITests/ui-*.png` |
 
 Verification method: OCR of every capture plus mean-luminance analysis
@@ -176,16 +179,25 @@ commands locally, which all pass.
 
 ## 9. Known limitations and unresolved risks
 
-1. **UI tests and TCC.** The very first UI automation attempt timed out
-   enabling automation mode; later runs were authorised and passed 16/16. If a
-   machine cannot authorise the runner, use `SKIP_UI_TESTS=1`. CI keeps UI
-   tests opt-in for this reason.
+1. **UI automation environment.** This MacBook Air has a Touch Bar and a CJK
+   input method, which makes synthetic clicks on mirrored controls and typed
+   text non-deterministic. The suite therefore drives sections via
+   `--ed-section`, asserts dialog *contracts* rather than executing them, and
+   verifies search/archive logic in unit tests (D-013). If a machine cannot
+   authorise the runner at all, use `SKIP_UI_TESTS=1`.
 2. **VoiceOver was validated structurally, not by listening.** Labels,
    identifiers and hints are present and non-empty (verified through the
    accessibility tree), but a human VoiceOver session was not performed.
-3. **Instruments traces were not captured.** Performance evidence is
-   process-RSS sampling plus scale tests; the interactive command is recorded in
-   `docs/PERFORMANCE-BASELINE.md`.
+   Two real accessibility defects were found and fixed during automation
+   (buttons swallowed by container elements, empty labels on `Text` +
+   identifier); a third — a SwiftUI crash while dismissing editor sheets under
+   an accessibility client — has mitigations but should be reproduced in a
+   VoiceOver session before shipping (D-014).
+3. **Instruments: Time Profiler captured, Allocations not.** A 6 s
+   launch+seed trace (612 samples) is summarised in
+   `artifacts/P6/instruments-summary.txt`; this Xcode exposes no exportable
+   allocation table, so memory evidence remains the RSS sampling. Raw `.trace`
+   bundles embed environment variables and were deleted after summarising.
 4. **PDFKit canvas is not drawn by AppKit window snapshots.** The page is
    exported separately via PDFKit as a sidecar PNG; the on-screen reader itself
    is a real `PDFView`.
@@ -217,8 +229,9 @@ This exact sequence was executed twice from fresh clones:
 
 - `/tmp/ed-clean` — build succeeded, unit/integration suite passed.
 - `/tmp/ed-clean2` — `SKIP_UI_TESTS=1 ./scripts/verify-all.sh` passed all
-  stages, then `./scripts/ui-test.sh` executed **16 tests with 0 failures**,
-  and the built app's entitlements still contained `com.apple.security.app-sandbox`.
+  stages, `./scripts/ui-test.sh` executed **20 tests with 0 failures**, and the
+  built app's entitlements still contained `com.apple.security.app-sandbox`.
+  (Counts were re-confirmed on the final commit, not only on that snapshot.)
 
 ## 11. Release readiness
 

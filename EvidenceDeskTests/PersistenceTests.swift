@@ -247,3 +247,83 @@ struct PersistenceTests {
         #expect(didThrow)
     }
 }
+@MainActor
+struct SourceDeletionPolicyTests {
+    /// Deleting a source together with its evidence removes exactly that
+    /// evidence and leaves unrelated notes untouched. Pairs with the UI test
+    /// that verifies both policies are offered in the confirmation dialog.
+    @Test func deleteSourceAlsoRemovesEvidence() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let researchCase = try persistence.createCase(title: "delete both")
+        let source = try persistence.createURLSource(in: researchCase,
+                                                     url: URL(string: "https://example.gov/d")!,
+                                                     title: "Doc")
+        let linked = try persistence.createEvidence(in: researchCase, text: "linked", type: .fact,
+                                                    source: source, locationNote: "", pageNumber: nil,
+                                                    userNotes: "")
+        let finding = try persistence.createFinding(in: researchCase, title: "F", body: "",
+                                                    status: .active, uncertainty: "")
+        try persistence.linkEvidence(linked, to: finding, relation: .supports)
+        let note = try persistence.createEvidence(in: researchCase, text: "note", type: .hypothesis,
+                                                  source: nil, locationNote: "", pageNumber: nil,
+                                                  userNotes: "", caseIsRequired: false)
+
+        let impact = DeletionGuard.impact(of: source)
+        #expect(impact.attachedEvidenceCount == 1)
+        #expect(impact.findingLinkCount == 1)
+
+        try persistence.deleteSource(source, keepEvidence: false)
+
+        #expect(researchCase.sources.isEmpty)
+        #expect(researchCase.evidences.count == 1, "only the unrelated note remains")
+        #expect(researchCase.evidences.first?.id == note.id)
+        #expect(finding.links.isEmpty, "links to deleted evidence must not dangle")
+        #expect(researchCase.evidences.contains { $0.id == linked.id } == false)
+    }
+}
+
+/// Library search/archive filtering, tested without a UI.
+@MainActor
+struct CaseFilterTests {
+    @Test func filtersByArchiveState() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let active = try persistence.createCase(title: "Active case", researchQuestion: "Q1")
+        let archived = try persistence.createCase(title: "Archived case", researchQuestion: "Q2")
+        try persistence.setArchived(archived, archived: true)
+
+        let visible = CaseFilter.apply(to: [active, archived], showArchived: false, query: "")
+        #expect(visible.map(\.id) == [active.id])
+
+        let archivedOnly = CaseFilter.apply(to: [active, archived], showArchived: true, query: "")
+        #expect(archivedOnly.map(\.id) == [archived.id])
+    }
+
+    @Test func searchesCodeTitleQuestionAndScope() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let transit = try persistence.createCase(
+            title: "Transit tender",
+            researchQuestion: "Was the window fair?",
+            researchScope: "Procurement documents"
+        )
+        let housing = try persistence.createCase(title: "Housing policy", researchQuestion: "Rent caps?")
+
+        let all = [transit, housing]
+        #expect(CaseFilter.apply(to: all, showArchived: false, query: "transit").map(\.id) == [transit.id])
+        #expect(CaseFilter.apply(to: all, showArchived: false, query: "FAIR").map(\.id) == [transit.id])
+        #expect(CaseFilter.apply(to: all, showArchived: false, query: "procurement").map(\.id) == [transit.id])
+        #expect(CaseFilter.apply(to: all, showArchived: false, query: transit.shortCode).map(\.id) == [transit.id])
+    }
+
+    @Test func searchWithNoMatchReturnsEmpty() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let only = try persistence.createCase(title: "Only case")
+        #expect(CaseFilter.apply(to: [only], showArchived: false, query: "zzzz-nothing").isEmpty)
+    }
+
+    @Test func blankQueryReturnsEverythingInScope() throws {
+        let persistence = try PersistenceService.makeInMemory()
+        let a = try persistence.createCase(title: "A")
+        let b = try persistence.createCase(title: "B")
+        #expect(CaseFilter.apply(to: [a, b], showArchived: false, query: "   ").count == 2)
+    }
+}

@@ -32,6 +32,7 @@ struct CaseOverviewView: View {
                     Text("Research Question").font(DesignSystem.Typography.sectionTitle)
                     TextEditor(text: $question)
                         .font(DesignSystem.Typography.body)
+                        .accessibilityLabel("Research question")
                         .frame(minHeight: 90)
                         .overlay(RoundedRectangle(cornerRadius: DesignSystem.Radius.small).strokeBorder(colors.separator))
                         .onChange(of: question) { scheduleSave() }
@@ -44,6 +45,7 @@ struct CaseOverviewView: View {
                     Text("Research Scope / Background").font(DesignSystem.Typography.sectionTitle)
                     TextEditor(text: $scope)
                         .font(DesignSystem.Typography.body)
+                        .accessibilityLabel("Research scope and background")
                         .frame(minHeight: 110)
                         .overlay(RoundedRectangle(cornerRadius: DesignSystem.Radius.small).strokeBorder(colors.separator))
                         .onChange(of: scope) { scheduleSave() }
