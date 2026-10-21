@@ -113,7 +113,7 @@ unavailable.
 content, which is why final visual evidence moved to XCUITest window captures
 (D-012) — those *do* include PDFKit's composited page.
 
-**Verification.** Screenshots in `artifacts/Screenshots/P1/` were OCR-checked
+**Verification.** Screenshots in `artifacts/Screenshots/Sandboxed/` were OCR-checked
 (see `docs/VISUAL-QA-CHECKLIST.md`), including `final-report-light.png`
 (report body) and `light-pdf-reader.png` (PDF page with the
 14-day clause). XCTest UI screenshots are extracted to

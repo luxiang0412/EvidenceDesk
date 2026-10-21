@@ -5,7 +5,7 @@ are real captures of the running app — no mockups.
 
 ## Evidence sources
 
-1. **Primary — `artifacts/Screenshots/Sandboxed/` (mirrored in `artifacts/P1/`)**
+1. **Primary — `artifacts/Screenshots/Sandboxed/`**
    Window-only screenshots attached by `EvidenceDeskUITests/ScreenshotTests`
    while the **sandboxed** app is running. Because only
    `XCUIElement.screenshot()` of the app window is used, no desktop, terminal or
@@ -28,7 +28,7 @@ are real captures of the running app — no mockups.
    | `min-size-01-overview.png` | 980 × 640 minimum window |
    | `state-01-saved.png` | Save indicator after a real write |
 
-1b. **`artifacts/Screenshots/Chinese/`** — the same screens with
+2. **`artifacts/Screenshots/Chinese/`** — the same screens with
    `-AppleLanguages (zh-Hans)`, plus the settings window
    (`zh-overview/sources/evidence/findings/timeline/report/settings.png`).
    OCR confirms translated chrome (概览 / 来源 / 证据 / 发现 / 时间线 / 报告,
