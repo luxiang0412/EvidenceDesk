@@ -233,3 +233,55 @@ the user's browser and needs no network entitlement. No URLSession code exists.
 
 **Verification.** `grep -R "URLSession" EvidenceDesk/` returns nothing;
 `EvidenceDesk.entitlements` contains no network key.
+
+## D-011 — App Sandbox had to be declared in `project.yml`
+
+**Context.** The entitlements file was authored by hand with
+`com.apple.security.app-sandbox`, but `project.yml` used XcodeGen's
+`entitlements: path:` form. XcodeGen **regenerates** that plist from
+`entitlements.properties`; with no properties it wrote an empty `<dict/>`,
+silently dropping the sandbox keys. The built app therefore ran unsandboxed for
+part of the implementation.
+
+**Evidence of the defect.** `codesign -d --entitlements :- <app>` printed only
+`com.apple.security.get-task-allow`.
+
+**Decision.** Declare the sandbox keys inside `project.yml`
+(`entitlements.properties`) so the generated plist is correct and `project.yml`
+stays the single source of truth. The generated
+`EvidenceDesk.entitlements` is committed for review.
+
+**Impact / behaviour change.** With the sandbox actually active:
+- The app is containerised: `~/Library/Containers/com.luxiang0412.EvidenceDesk/`.
+- UI tests must use `--test-storage-name` (resolved inside the container), not
+  an arbitrary host path — otherwise the app correctly shows `FatalErrorView`.
+- The app-rendered `--screenshot` path cannot write to the repository; it
+  writes into the container temp as a fallback.
+
+**Verification.**
+- `codesign -d --entitlements :-` now shows `app-sandbox`, `files.user-selected.read-only`,
+  `files.user-selected.read-write` (plus Debug-only `get-task-allow`).
+- A seeded run writes only inside the container
+  (`.../Data/tmp/EvidenceDeskUITest/.../Attachments/...`).
+- All 58 unit/integration tests and 11 UI tests still pass with the sandbox on.
+- Visual evidence was re-captured **through XCUITest** (`ScreenshotTests`),
+  i.e. from the sandboxed app, into `artifacts/Screenshots/Sandboxed/`.
+
+---
+
+## D-012 — Visual evidence captured via XCUITest window screenshots
+
+**Context.** The in-app `cacheDisplay` renderer cannot write outside the app
+sandbox, and it does not draw PDFKit/AppKit-backed content faithfully.
+
+**Decision.** Primary visual evidence now comes from `ScreenshotTests`, which
+drives the real sandboxed app and captures **only the app window**
+(`XCUIElement.screenshot()`), so no desktop or other applications appear.
+Appearance and window size are driven by environment variables
+(`EVIDENCE_DESK_APPEARANCE`, `EVIDENCE_DESK_WINDOW_SIZE`) rather than
+command-line flags, because XCTest argument passing proved unreliable for
+those two switches.
+
+**Verification.** `artifacts/Screenshots/Sandboxed/` contains 13 window-only
+captures (light sections, dark, empty/archived/no-results, minimum size, saved
+state). Dark mode verified numerically (mean luminance 38 vs 245 in light).

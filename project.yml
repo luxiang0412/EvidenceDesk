@@ -33,6 +33,13 @@ targets:
         NSHumanReadableCopyright: "Copyright © 2026."
     entitlements:
       path: EvidenceDesk/EvidenceDesk.entitlements
+      properties:
+        # App Sandbox is required from the first build, not deferred to release.
+        # Only user-selected file access is requested: the app never fetches the
+        # network and copies chosen files into its own container.
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.files.user-selected.read-write: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.luxiang0412.EvidenceDesk

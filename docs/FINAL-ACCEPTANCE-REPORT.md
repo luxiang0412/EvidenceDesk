@@ -27,7 +27,7 @@ executed.
 | Empty / error / loading states | PASS | `UITests/testEmptyStateOffersFirstAction`, `testSearchNoResultState`, `testArchivedEmptyStateIsNotDeletion`; `ErrorBannerView`; `StartupView` progress state |
 | Keyboard navigation and shortcuts | PASS | `AppCommands`; `UITests/testMenuCommandsExistAndInspectorToggles`, `testEditMenuIsStandard` |
 | VoiceOver labels for controls | PASS (with one manual caveat, §9) | Explicit labels/identifiers on rows, statuses, save state, errors; verified via accessibility-tree dumps |
-| Real running screenshots for core flows | PASS | `artifacts/Screenshots/P1/`, `artifacts/Screenshots/UITests/` |
+| Real running screenshots for core flows | PASS | `artifacts/Screenshots/Sandboxed/` (window-only, sandboxed app) |
 
 ## 2. Toolchain and test machine
 
@@ -52,7 +52,7 @@ Recorded at `artifacts/P0/environment.txt`; summary in `docs/ENVIRONMENT.md`.
 | `./scripts/generate-project.sh` | 0 | `EvidenceDesk.xcodeproj` generated |
 | `./scripts/build.sh` | 0 | `** BUILD SUCCEEDED **` (Debug, macOS 15.0 target) |
 | `./scripts/test.sh` | 0 | `Test run with 58 tests in 13 suites passed` |
-| `./scripts/ui-test.sh` | 0 | `Executed 11 tests, with 0 failures` |
+| `./scripts/ui-test.sh` | 0 | `Executed 16 tests, with 0 failures` |
 | `./scripts/verify-all.sh` | 0 | environment PASS → generate PASS → build PASS → tests PASS → ui-tests PASS |
 | `./scripts/perf-baseline.sh` | 0 | Scale tests passed; baseline recorded |
 | `git clone` → `./scripts/build.sh` → `./scripts/test.sh` in `/tmp/ed-clean` | 0 | Clean checkout builds and the full test suite passes |
@@ -64,7 +64,9 @@ Logs: `artifacts/P0/*.log`, `artifacts/verify-*/`, `artifacts/TestResults/`.
 | Suite | Count | Result |
 | --- | --- | --- |
 | Swift Testing (unit + integration) | 58 tests / 13 suites | 58 passed, 0 failed, 0 skipped |
-| XCTest UI automation | 11 tests / 3 classes | 11 passed, 0 failed |
+| XCTest UI automation | 16 tests / 4 classes | 16 passed, 0 failed |
+| — functional flows | 11 | passed |
+| — screenshot/state captures | 5 | passed |
 
 Note: `SmokeTests` (3 of the 58) overlaps `URLValidationTests` and
 `ShortCodeTests` from the P0 bootstrap. They were retained deliberately rather
@@ -81,27 +83,33 @@ Breakdown by area:
 
 ## 5. Visual acceptance
 
-All screenshots are real renders of the running app or XCTest attachments.
+All screenshots are real captures of the **sandboxed** running app, taken by
+`EvidenceDeskUITests/ScreenshotTests` using `XCUIElement.screenshot()` on the
+app window only (no desktop, terminal or other apps in frame).
 
 | Item | Path |
 | --- | --- |
-| Empty library | `artifacts/Screenshots/P1/empty-library.png` |
-| Overview (light) | `artifacts/Screenshots/P1/final-overview-light.png` |
-| Sources | `artifacts/Screenshots/P1/final-sources-light.png` |
-| PDF reader (+ PDFKit page) | `artifacts/Screenshots/P1/final-pdf-reader-light.png`, `...png.pdfpage.png` |
-| Evidence | `artifacts/Screenshots/P1/final-evidence-light.png` |
-| Findings | `artifacts/Screenshots/P1/final-findings-light.png` |
-| Timeline | `artifacts/Screenshots/P1/final-timeline-light.png` |
-| Report preview | `artifacts/Screenshots/P1/final-report-light.png` |
-| Dark appearance | `artifacts/Screenshots/P1/final-dark-overview.png` |
-| Minimum window 980×640 | `artifacts/Screenshots/P1/final-min-overview.png` |
-| UI-test captures | `artifacts/Screenshots/UITests/ui-*.png` |
+| Empty library | `artifacts/Screenshots/Sandboxed/empty-01-library.png` |
+| Archived empty state | `.../empty-02-archived.png` |
+| Search, no results | `.../empty-03-no-search-results.png` |
+| Overview (light) | `.../light-01-overview.png` |
+| Sources | `.../light-sources.png` |
+| Evidence | `.../light-evidence.png` |
+| Findings | `.../light-findings.png` |
+| Timeline | `.../light-timeline.png` |
+| Report preview | `.../light-report.png` |
+| Dark appearance | `.../dark-01-overview.png`, `.../dark-02-findings.png` |
+| Minimum window 980×640 | `.../min-size-01-overview.png` |
+| Save indicator after a real write | `.../state-01-saved.png` |
+| PDF page (PDFKit render) | `artifacts/Screenshots/P1/final-pdf-reader-light.png.pdfpage.png` |
+| Functional-flow captures | `artifacts/Screenshots/UITests/ui-*.png` |
 
-Verification method: OCR of each render plus pixel analysis (see
-`docs/VISUAL-QA-CHECKLIST.md`). Example OCR from the report render:
+Verification method: OCR of every capture plus mean-luminance analysis
+(`docs/VISUAL-QA-CHECKLIST.md`). Sample OCR from `light-report.png`:
 `# Local Transit Tender - Sources Review`, `## Research Question`,
-`### F-001 … (Active)`, `**Supporting evidence:** - E-001`,
-`**Contradicting evidence:** - E-002`, `> Firms must submit bids within 14 days…`.
+`## Findings`, `**Supporting evidence:**`, `**Contradicting evidence:**`,
+`> Firms must submit bids within 14 days…`. Dark mode measured at mean
+luminance 38 vs 245 for light, confirming the appearance actually switched.
 
 ## 6. Performance
 
@@ -121,17 +129,34 @@ time; text preview reads at most 200 KB.
 
 ## 7. Sandbox, recovery, export
 
-- **Sandbox**: enabled; entitlements are app-sandbox + user-selected read/write
-  only. No network entitlement. Verified by inspecting
-  `EvidenceDesk/EvidenceDesk.entitlements` and the built app.
-- **File access**: all imports go through `NSOpenPanel` / drop then are copied
-  into Application Support; exports go through `NSSavePanel` / `NSOpenPanel`.
-- **Recovery**: startup check flags missing attachments (`source.attachmentIsMissing`)
-  and lists orphan directories; it never deletes unconfirmed files.
-  `RecoveryTests` covers both.
+- **App Sandbox is genuinely enabled** in every build. The entitlements are
+  declared in `project.yml` (not only in a hand-written plist) after a defect
+  was found where XcodeGen regenerated an empty entitlements file — see
+  `docs/DECISIONS.md` D-011. Verified by
+  `codesign -d --entitlements :- artifacts/DerivedData/Build/Products/Debug/EvidenceDesk.app`:
+
+  ```
+  com.apple.security.app-sandbox
+  com.apple.security.files.user-selected.read-only
+  com.apple.security.files.user-selected.read-write
+  com.apple.security.get-task-allow        (Debug only)
+  ```
+
+- **No network entitlement** exists, and no `URLSession` code exists
+  (`grep -R URLSession EvidenceDesk/` is empty). Links open in the user's
+  browser.
+- **Containerised storage confirmed**: a seeded run wrote only to
+  `~/Library/Containers/com.luxiang0412.EvidenceDesk/Data/tmp/...` with
+  attachments, proving real sandbox enforcement.
+- **File access**: imports use `NSOpenPanel`/drag & drop then copy into the
+  container; exports use `NSSavePanel`/`NSOpenPanel`.
+- **Recovery**: the startup check flags missing attachments
+  (`source.attachmentIsMissing`) and lists orphan directories without deleting
+  anything unconfirmed (`RecoveryTests`).
 - **Export**: `report.md` + `manifest.json` (`schemaVersion: 1`, stable IDs,
-  relative attachment paths) + `attachments/`; originals are copied, never
-  moved; missing attachments abort with a clear error.
+  relative paths) + `attachments/`; originals copied, never moved; missing
+  attachments abort with a clear error; read-only destinations fail honestly
+  (`ExportFailureTests`).
 
 ## 8. CI
 
@@ -152,19 +177,18 @@ commands locally, which all pass.
 ## 9. Known limitations and unresolved risks
 
 1. **UI tests and TCC.** The very first UI automation attempt timed out
-   enabling automation mode; later runs were authorised and passed 11/11. If a
+   enabling automation mode; later runs were authorised and passed 16/16. If a
    machine cannot authorise the runner, use `SKIP_UI_TESTS=1`. CI keeps UI
    tests opt-in for this reason.
 2. **VoiceOver was validated structurally, not by listening.** Labels,
    identifiers and hints are present and non-empty (verified through the
    accessibility tree), but a human VoiceOver session was not performed.
-3. **Instruments traces were not captured.** Blocked by the same automation
-   gating; the performance evidence is process-RSS sampling plus scale tests.
-   The command to run interactively is documented in
+3. **Instruments traces were not captured.** Performance evidence is
+   process-RSS sampling plus scale tests; the interactive command is recorded in
    `docs/PERFORMANCE-BASELINE.md`.
-4. **PDFKit canvas is not captured by the app's window renderer.** A PDFKit
-   page render is exported as a sidecar PNG; the on-screen reader itself is a
-   real `PDFView`.
+4. **PDFKit canvas is not drawn by AppKit window snapshots.** The page is
+   exported separately via PDFKit as a sidecar PNG; the on-screen reader itself
+   is a real `PDFView`.
 5. **Link sources are not archived.** Page content is never fetched, by design;
    link rot is a real risk and the UI says so.
 6. **No undo for database deletions.** Only text editing uses system Undo, and

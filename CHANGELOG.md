@@ -40,7 +40,8 @@ First complete release of the local-first research workspace.
 
 ### Quality
 
-- 58 Swift Testing tests (unit + integration) and 11 XCTest UI tests.
+- 58 Swift Testing tests (unit + integration) and 16 XCTest UI tests
+  (11 functional flows + 5 screenshot/state captures).
 - `scripts/verify-all.sh` runs environment → generate → build → unit tests →
   UI tests.
 - Performance baseline recorded (500 sources, 200 evidence/link rows, 100 MB

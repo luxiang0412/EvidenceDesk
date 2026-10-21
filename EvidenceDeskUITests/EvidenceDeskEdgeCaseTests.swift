@@ -114,7 +114,9 @@ final class EvidenceDeskEdgeCaseTests: XCTestCase {
     }
 
     private func attach(_ name: String) {
-        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        let window = app.windows.firstMatch
+        let shot = window.exists ? window.screenshot() : XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)

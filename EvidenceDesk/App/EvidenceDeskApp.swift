@@ -43,5 +43,5 @@ struct EvidenceDeskApp: App {
 
 /// Dev/QA boot tracing, written before any view exists.
 private func bootTrace(_ message: String) {
-    _ = try? ((message + "\n").appendToFile(URL(fileURLWithPath: "/tmp/ed-boot.txt")))
+    _ = try? ((message + "\n").appendToFile(FileManager.default.temporaryDirectory.appendingPathComponent("ed-boot.txt")))
 }

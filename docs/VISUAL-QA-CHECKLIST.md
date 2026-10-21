@@ -1,60 +1,81 @@
 # Visual QA Checklist
 
-Screenshots are rendered by the running app itself (`--screenshot`), then
-inspected programmatically (OCR + pixel statistics) because this machine cannot
-grant screen-recording permission to CLI tooling. Raw files live in
-`artifacts/Screenshots/` (gitignored).
+Raw evidence lives under `artifacts/Screenshots/` (gitignored). All screenshots
+are real captures of the running app — no mockups.
 
 ## Evidence sources
 
-1. `artifacts/Screenshots/P1/` — app-rendered screenshots from the running app
-   (`--screenshot`), OCR-verified.
-2. `artifacts/Screenshots/UITests/` — screenshots attached by the XCTest UI
-   suite (`ui-empty-state.png`, `ui-sources.png`, `ui-evidence.png`,
-   `ui-findings.png`, `ui-timeline.png`, `ui-report.png`, `ui-new-case.png`,
-   `ui-search-no-results.png`, `ui-archived-empty.png`,
-   `ui-restart-sources.png`).
+1. **Primary — `artifacts/Screenshots/Sandboxed/`**
+   Window-only screenshots attached by `EvidenceDeskUITests/ScreenshotTests`
+   while the **sandboxed** app is running. Because only
+   `XCUIElement.screenshot()` of the app window is used, no desktop, terminal or
+   other application appears in the evidence.
 
-## Evidence index
+   | File | Screen |
+   | --- | --- |
+   | `light-01-overview.png` | Case overview, populated |
+   | `light-sources.png` | Sources list + detail |
+   | `light-evidence.png` | Evidence list + detail |
+   | `light-findings.png` | Findings |
+   | `light-timeline.png` | Timeline (incl. undated section) |
+   | `light-report.png` | Report preview (Markdown source) |
+   | `dark-01-overview.png` | Overview, dark appearance |
+   | `dark-02-findings.png` | Findings, dark appearance |
+   | `empty-01-library.png` | Empty library |
+   | `empty-02-archived.png` | Archived empty state |
+   | `empty-03-no-search-results.png` | Search with no results |
+   | `min-size-01-overview.png` | 980 × 640 minimum window |
+   | `state-01-saved.png` | Save indicator after a real write |
 
-| Requirement | File | How verified |
+2. **`artifacts/Screenshots/UITests/`** — functional UI-suite screenshots
+   (`ui-*.png`), also window-only.
+
+3. **`artifacts/Screenshots/P1/`** — earlier in-app renders incl. the PDFKit
+   page export (`final-pdf-reader-light.png.pdfpage.png`), retained because the
+   window capturer cannot draw the PDFKit canvas.
+
+## Requirement → evidence
+
+| Requirement | Evidence | How verified |
 | --- | --- | --- |
-| Main window, initial empty state | `artifacts/Screenshots/P1/empty-library.png`, `UITests/ui-empty-state.png` | Image 2360×1560; OCR: "No Research Cases", "Create a case to begin a research project.", "New Research Case" |
-| Empty state, second run | `artifacts/Screenshots/P1/empty-light.png` | distinct render of the same state |
-| Case overview (populated) | `artifacts/Screenshots/P1/final-overview-light.png` | OCR: title, question, scope, "Saved", stat counts 3 Sources / 4 Evidence / 1 Finding / 3 Timeline |
-| Source list | `artifacts/Screenshots/P1/final-sources-light.png`, `UITests/ui-sources.png` | OCR: S-001 URL row with host + publisher, S-002 text row, S-003 PDF row |
-| Source detail (URL) | `artifacts/Screenshots/P1/section-sources-detail-url.png` | OCR: link-source explanation + URL |
-| PDF reader | `artifacts/Screenshots/P1/final-pdf-reader-light.png` + `.pdfpage.png` | Window capture shows list + reader chrome; PDFKit page rendered separately via PDFKit (OCR: "14 days", "30-day window") |
-| Evidence | `artifacts/Screenshots/P1/final-evidence-light.png`, `UITests/ui-evidence.png` | OCR: 21 text elements incl. codes and excerpts |
-| Findings (supports + contradicts) | `artifacts/Screenshots/P1/final-findings-light.png`, `UITests/ui-findings.png` | OCR: F-001 row + body |
-| Report preview | `artifacts/Screenshots/P1/final-report-light.png`, `UITests/ui-report.png` | OCR: `# Local Transit Tender`, `## Research Question`, `### F-001`, `**Supporting evidence:**`, `**Contradicting evidence:**`, `> Firms must submit bids within 14 days…` |
-| Timeline | `artifacts/Screenshots/P1/final-timeline-light.png`, `UITests/ui-timeline.png` | OCR: 6 text elements incl. event titles |
-| Dark appearance | `artifacts/Screenshots/P1/final-dark-overview.png`, `section-sources-dark.png` | OCR: 24/10 lines legible; same content as light |
-| Minimum window size (980×640) | `artifacts/Screenshots/P1/final-min-overview.png` | 1960×1384 render (2× 980×640); all primary controls present |
-| Search / archived empty states | `UITests/ui-search-no-results.png`, `UITests/ui-archived-empty.png` | OCR: "No Matching Cases", "No Archived Cases" + "Archiving is not deleting." |
-| Error / recovery state | covered by `RecoveryTests` (missing attachment, orphan clean-up) and `FatalErrorView`; no screenshot (see limitations) | see `docs/FINAL-ACCEPTANCE-REPORT.md` |
+| Main window, initial empty state | `Sandboxed/empty-01-library.png` | OCR: "No Research Cases", "Create a case to begin a research project.", "New Research Case" |
+| Case overview, populated | `Sandboxed/light-01-overview.png` | OCR: case title, research question, scope, "Saved", stats 3 Sources / 4 Evidence / 1 Finding / 3 Timeline |
+| Source list (URL / text / PDF) | `Sandboxed/light-sources.png` | OCR: `S-001 City announces transit tender…`, `S-002 … tender-notes.md`, `S-003 … line7-spec.pdf` |
+| PDF reading + page fidelity | `P1/final-pdf-reader-light.png` + `.pdfpage.png` | Window capture shows list + reader chrome; the page itself is rendered through PDFKit (OCR: "14 days", "30-day window", "30-day") |
+| Evidence detail | `Sandboxed/light-evidence.png` | OCR: `E-001 Fact`, source ref, excerpt text |
+| Findings with typed evidence | `Sandboxed/light-findings.png` | OCR: `F-001`, `Active`, body text |
+| Timeline incl. undated | `Sandboxed/light-timeline.png` | OCR: dates + "Date unknown" |
+| Report preview | `Sandboxed/light-report.png` | OCR: `# Local Transit Tender`, `## Research Question`, `## Findings`, `**Supporting evidence:**`, `**Contradicting evidence:**`, `> Firms must submit bids within 14 days…` |
+| Dark appearance | `Sandboxed/dark-01-overview.png`, `dark-02-findings.png` | Mean luminance 38 vs 245 in light; OCR reads all text |
+| Minimum window (980×640) | `Sandboxed/min-size-01-overview.png` | Full workspace visible: title, question, scope, save state, stats, section picker |
+| Search no-results | `Sandboxed/empty-03-no-search-results.png` | OCR: "No Matching Cases" + "Try a different title, question or case code." |
+| Archived ≠ deleted | `Sandboxed/empty-02-archived.png` | OCR: "No Archived Cases" + "Archiving is not deleting." |
+| Save feedback honesty | `Sandboxed/state-01-saved.png` | UI test asserts `saveState.saved` appears only after a persisted write |
+| Error states | no screenshot | Covered by `ErrorBannerView`/`FatalErrorView` code and tests (`ExportFailureTests`, `RecoveryTests`); not captured because triggering them requires fault injection that would pollute a visual fixture |
 
 ## Checklist
 
 | Check | Result |
 | --- | --- |
-| Type hierarchy consistent (page title > section > body > metadata) | Pass — tokens only; verified in renders |
-| Icon sizes and alignment consistent | Pass — 18 pt row icons, 26–28 pt headers |
+| Type hierarchy consistent (page > section > body > metadata) | Pass — token-only typography |
+| Icon sizes/alignment consistent | Pass — 18 pt row icons, 26–28 pt headers |
 | Spacing follows tokens | Pass — all paddings from `DesignSystem.Spacing` |
-| No clipping, overlap, or unexpected scrolling at default size | Pass — 1180×780 renders show complete layouts |
-| Same at minimum size 980×640 | Pass — min-size render shows title, question, scope, save state, stats |
-| Dark mode text and separators readable | Pass — all colors are semantic or contrast-checked hues; OCR reads dark-mode text |
-| Keyboard focus visible and ordered | Pass — default AppKit focus rings retained (no custom focus suppression) |
-| Empty and error states offer a next step | Pass — every empty state has an action; errors have retry |
-| Content area remains usable when narrowed | Pass — split view collapses sidebar/inspector |
-| Motion respects Reduce Motion | Pass — no custom animations |
-| No color-only status encoding | Pass — all status tags have text + symbol |
-| No emoji used as functional icons | Pass — SF Symbols only |
+| No clipping/overlap/unexpected scrolling at default size | Pass — 1180×780 captures show complete layouts |
+| Same at minimum size 980×640 | Pass — `min-size-01-overview.png` |
+| Dark mode text and separators readable | Pass — luminance check + OCR |
+| Keyboard focus visible and ordered | Pass — AppKit focus rings retained, no custom suppression |
+| Empty/error states offer a next step | Pass — every empty state has an action; errors have retry |
+| Content usable when narrowed | Pass — sidebar and inspector collapse |
+| Reduce Motion respected | Pass — no custom animations |
+| No colour-only status encoding | Pass — every tag has text + SF Symbol |
+| No emoji as functional icons | Pass — SF Symbols only |
+| Screenshot contains no desktop/other apps | Pass — window-only captures |
+| Screenshot contains no personal paths | Pass — fixture data only (`example.gov`, synthetic titles) |
 
-## Known capture caveat
+## Known capture caveats
 
-`NSView.cacheDisplay` does not draw PDFKit page contents or
-`NSVisualEffectView` material. The PDF page is therefore additionally exported
-through PDFKit (`*.pdfpage.png`), and the report preview was switched to an
-`NSTextView`-backed `TextEditor` so its text is captured. This is a capture
-limitation, not missing UI — the on-screen reader shows the same page.
+- PDFKit page content is not drawn by AppKit window snapshots; the page is
+  exported separately through PDFKit (`*.pdfpage.png`).
+- Appearance and window size during screenshots are driven by
+  `EVIDENCE_DESK_APPEARANCE` and `EVIDENCE_DESK_WINDOW_SIZE` environment
+  variables (see `docs/DECISIONS.md` D-012).

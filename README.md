@@ -19,19 +19,28 @@ Real renders of the running app (captured via the app's own QA renderer; see
 
 | Screen | File |
 | --- | --- |
-| Empty library | `artifacts/Screenshots/P1/empty-library.png` |
-| Case overview | `artifacts/Screenshots/P1/final-overview-light.png` |
-| Sources | `artifacts/Screenshots/P1/final-sources-light.png` |
-| PDF reader | `artifacts/Screenshots/P1/final-pdf-reader-light.png` |
-| Evidence | `artifacts/Screenshots/P1/section-evidence-light.png` |
-| Findings | `artifacts/Screenshots/P1/section-findings-light.png` |
-| Timeline | `artifacts/Screenshots/P1/section-timeline-light.png` |
-| Report preview | `artifacts/Screenshots/P1/final-report-light.png` |
-| Dark appearance | `artifacts/Screenshots/P1/final-dark-overview.png` |
-| Minimum window (980×640) | `artifacts/Screenshots/P1/section-overview-min.png` |
+| Empty library | `artifacts/Screenshots/Sandboxed/empty-01-library.png` |
+| Case overview | `artifacts/Screenshots/Sandboxed/light-01-overview.png` |
+| Sources | `artifacts/Screenshots/Sandboxed/light-sources.png` |
+| Evidence | `artifacts/Screenshots/Sandboxed/light-evidence.png` |
+| Findings | `artifacts/Screenshots/Sandboxed/light-findings.png` |
+| Timeline | `artifacts/Screenshots/Sandboxed/light-timeline.png` |
+| Report preview | `artifacts/Screenshots/Sandboxed/light-report.png` |
+| Dark appearance | `artifacts/Screenshots/Sandboxed/dark-01-overview.png` |
+| Minimum window (980×640) | `artifacts/Screenshots/Sandboxed/min-size-01-overview.png` |
+| PDF reader page (PDFKit render) | `artifacts/Screenshots/P1/final-pdf-reader-light.png.pdfpage.png` |
 
-`artifacts/` is gitignored, so regenerate screenshots locally with the commands
-in the "Visual QA" section below.
+`artifacts/` is gitignored. Regenerate the screenshots with:
+
+```bash
+xcodebuild test -project EvidenceDesk.xcodeproj -scheme EvidenceDesk \
+  -destination 'platform=macOS' -derivedDataPath artifacts/DerivedData \
+  -only-testing:EvidenceDeskUITests/ScreenshotTests \
+  -resultBundlePath artifacts/TestResults/screenshots.xcresult
+xcrun xcresulttool export attachments \
+  --path artifacts/TestResults/screenshots.xcresult \
+  --output-path artifacts/Screenshots/Sandboxed
+```
 
 ## Scope (v1)
 
@@ -78,14 +87,15 @@ open artifacts/DerivedData/Build/Products/Debug/EvidenceDesk.app
 
 ```bash
 ./scripts/test.sh      # Swift Testing: unit + integration (58 tests)
-./scripts/ui-test.sh   # XCTest UI automation against the real app (11 tests)
+./scripts/ui-test.sh   # XCTest UI automation + screenshots (16 tests)
 ./scripts/verify-all.sh  # env → generate → build → unit tests → UI tests
 SKIP_UI_TESTS=1 ./scripts/verify-all.sh   # if UI automation is unavailable
 ./scripts/perf-baseline.sh                # scale/perf baseline → artifacts/P6
 ```
 
-Both test targets use an isolated storage directory (a UUID-scoped folder inside
-the app's own container), never your real library.
+Both test targets use an isolated storage directory (a UUID-scoped folder
+inside the app's own sandbox container), never your real library. App Sandbox
+is enabled in every build, including tests.
 
 ## Where your data lives
 
